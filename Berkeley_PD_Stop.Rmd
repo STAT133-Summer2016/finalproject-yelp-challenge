@@ -1,6 +1,6 @@
 ---
-title: "Test"
-author: "Amy Zhu"
+title: "Cleaned Stop Data"
+author: "Amy Zhu, Mengyu Li"
 date: "July 19, 2016"
 output: html_document
 ---
@@ -10,46 +10,48 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyr)
 library(dplyr)
 library(stringr)
+<<<<<<< HEAD
 library(lubridate)
 library(ggplot2)
+=======
+>>>>>>> 06a639aad78add78e6b9e6e33ba2b089d0df4d59
 
-#read data
+#Read data
 stop_df <- read.csv("~/Desktop/Berkeley_PD_-_Stop_Data.csv")
 
-# Delete meaningless information and fix typos
+# Delete meaningless information and fix data entry errors
 stop_df <- stop_df %>%
   mutate(Dispositions = as.character(stop_df$Dispositions)) %>%
   mutate(Dispositions = str_replace(Dispositions, "zz do not use Assist", "")) %>%
   mutate(Dispositions = str_replace(Dispositions, "FA - TIGHT, ", "")) %>%
   mutate(Dispositions = str_replace(Dispositions, "[0]{6}[1]?", "00000"))
 
-# Split other information from information about the individual(s)
+# Isolates information about the case into the Other column
 stop_df <- stop_df %>%
   mutate(Other = str_replace_all(Dispositions, "[ ,]{0,2}[a-zA-Z0-9]{6}", "")) %>%
   mutate(Other = str_replace_all(Other, "^[ ,]{0,4}", "")) %>%
   mutate(Other = str_replace(Other, ",$", ""))
 
-
-# Delete other information from Disposition
+# Isolates information about the individual(s) into the Dispositions column
 OtherInformation <- c( "^M$" = "", ", M$" = "", "M, P$" = "", "P[, ]{0,2}" = "", "AR[, ]{0,2}" = "", "IN[, ]{0,2}" = "", "FC[, ]{0,2}" = "", "CO[, ]{0,2}" = "", "MH[, ]{0,2}" = "", "TOW[, ]{0,2}" = "", "0[, ]{0,2}" = "", "00000[, ]{0,2}" = "")
 stop_df <- stop_df %>%
   mutate(Dispositions = str_replace_all(Dispositions, OtherInformation)) %>%
   mutate(Dispositions = str_replace_all(Dispositions, "[, ]{0,2}$", ""))
 
-# Creating new entries for multiple people in one disposition
+# Arranges information in the Dispositions column into separate objects for each individual involved 
 stop_df <- stop_df %>%
   separate(Dispositions, into = c("1", "2", "3", "4", "5"), extra = "merge", fill = "right") %>%
   gather(key = Individual, value = Dispositions, -Incident.Number, -Incident.Type, -Call.Date.Time, -Other, -Location) %>%
   na.omit() %>%
   arrange(Incident.Number)
 
-# Separate information about people
-stop_df<- stop_df %>%
+# Separates information about the individual into 6 columns describing race, gender, age, reason, enforcement, and car search
+stop_df <- stop_df %>%
     filter(nchar(Dispositions) == 6) %>%
       mutate(Race = substr(Dispositions,1,1)) %>%
         mutate(Gender = substr (Dispositions,2,2)) %>%
           mutate(AgeRange = substr (Dispositions,3,3)) %>%
-            mutate(Reason =substr(Dispositions,4,4)) %>%
+            mutate(Reason = substr(Dispositions,4,4)) %>%
               mutate(Enforcement = substr(Dispositions,5,5)) %>%
                  mutate(CarSearch = substr(Dispositions,6,6))
 
