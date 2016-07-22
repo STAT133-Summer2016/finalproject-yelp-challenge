@@ -12,6 +12,7 @@ library(dplyr)
 library(stringr)
 library(lubridate)
 library(ggplot2)
+library(reshape)
 
 #read data
 stop_df <- read.csv("~/Desktop/Berkeley_PD_-_Stop_Data.csv")
@@ -23,33 +24,27 @@ stop_df <- stop_df %>%
   mutate(Dispositions = str_replace(Dispositions, "FA - TIGHT, ", "")) %>%
   mutate(Dispositions = str_replace(Dispositions, "[0]{6}[1]?", "00000"))
 
-
-# Split people information and other information
+# Split information about the individual from other information
 stop_df <- stop_df %>%
   mutate(Other = str_replace_all(Dispositions, "[ ,]{0,2}[a-zA-Z0-9]{6}", "")) %>%
   mutate(Other = str_replace_all(Other, "^[ ,]{0,4}", "")) %>%
   mutate(Other = str_replace(Other, ",$", ""))
 
-# Delete Other information from Disposition
+# Delete other information from Disposition
 OtherInformation <- c( "^M$" = "", ", M$" = "", "M, P$" = "", "P[, ]{0,2}" = "", "AR[, ]{0,2}" = "", "IN[, ]{0,2}" = "", "FC[, ]{0,2}" = "", "CO[, ]{0,2}" = "", "MH[, ]{0,2}" = "", "TOW[, ]{0,2}" = "", "0[, ]{0,2}" = "", "00000[, ]{0,2}" = "")
 stop_df <- stop_df %>%
   mutate(Dispositions = str_replace_all(Dispositions, OtherInformation)) %>%
   mutate(Dispositions = str_replace_all(Dispositions, "[, ]{0,2}$", ""))
 
+stop_df <- separate(stop_df, Dispositions, into = c("Individual_1", "Individual_2", "Individual_3", "Individual_4", "Individual_5"), extra = "merge", fill = "right")
+
+stop_df <- melt(stop_df, id = c("Incident.Number", "Call.Date.Time", "Location", "Incident.Type", "Other")) %>%
+  arrange(Incident.Number)
+
 View(stop_df)
 
-#mutate dispositions column to only contain six character cases
-<<<<<<< HEAD
-stop_df <- mutate(stop_df, Dispositions = str_match_all(stop_df$Dispositions, "[a-zA-Z0-9]{6}"))
-
-dispositions <- separate(stop_df, Dispositions, into = c("Empty", "Individual_1", "Individual_2", "Individual_3", "Individual_4", "Individual_5"), extra = "merge", fill = "right")
 =======
 
->>>>>>> f5107733d56a8bc45c25e020d452bb8e4ab654c6
-
-
-View(stop_df)
-View(dispositions)
 
 ###IGNORE EVERYTHING AFTER THIS
 
