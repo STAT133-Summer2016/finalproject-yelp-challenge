@@ -7,6 +7,9 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
 library(tidyr)
 library(dplyr)
 library(stringr)
@@ -51,4 +54,8 @@ stop_df <- stop_df %>%
               mutate(Enforcement = substr(Dispositions,5,5)) %>%
                  mutate(CarSearch = substr(Dispositions,6,6))
 
+write.csv(stop_df, "cleaned_stop_data.csv")
 View(stop_df)
+
+```
+
