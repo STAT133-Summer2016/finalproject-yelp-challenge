@@ -12,7 +12,6 @@ library(dplyr)
 library(stringr)
 library(lubridate)
 library(ggplot2)
-library(reshape)
 
 #read data
 stop_df <- read.csv("~/Desktop/Berkeley_PD_-_Stop_Data.csv")
