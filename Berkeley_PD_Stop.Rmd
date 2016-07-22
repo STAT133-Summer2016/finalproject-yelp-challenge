@@ -41,13 +41,9 @@ stop_df <- stop_df %>%
 View(stop_df)
 
 #mutate dispositions column to only contain six character cases
-<<<<<<< HEAD
 stop_df <- mutate(stop_df, Dispositions = str_match_all(stop_df$Dispositions, "[a-zA-Z0-9]{6}"))
 
 dispositions <- separate(stop_df, Dispositions, into = c("Empty", "Individual_1", "Individual_2", "Individual_3", "Individual_4", "Individual_5"), extra = "merge", fill = "right")
-=======
-
->>>>>>> f5107733d56a8bc45c25e020d452bb8e4ab654c6
 
 
 View(stop_df)
