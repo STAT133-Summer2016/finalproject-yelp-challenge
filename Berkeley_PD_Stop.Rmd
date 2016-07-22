@@ -44,6 +44,16 @@ stop_df <- stop_df %>%
   na.omit() %>%
   arrange(Incident.Number)
 
+# Separate information about people
+stop_df<- stop_df %>%
+    filter(nchar(Dispositions) == 6) %>%
+      mutate(Race = substr(Dispositions,1,1)) %>%
+        mutate(Gender = substr (Dispositions,2,2)) %>%
+          mutate(AgeRange = substr (Dispositions,3,3)) %>%
+            mutate(Reason =substr(Dispositions,4,4)) %>%
+              mutate(Enforcement = substr(Dispositions,5,5)) %>%
+                 mutate(CarSearch = substr(Dispositions,6,6))
+
 
 
 
