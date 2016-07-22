@@ -33,15 +33,15 @@ stop_df <- mutate(stop_df, Other = str_replace_all(stop_df$Dispositions, "[ ,]{0
 stop_df <- mutate(stop_df, Other = str_replace_all(stop_df$Other, "^[ ,]{0,4}", ""))
 
 #mutate dispositions column to only contain six character cases
-stop_df <- mutate(stop_df, Dispositions = str_extract_all(stop_df$Dispositions, "[a-zA-Z0-9]{6}"))
-#removes empty cases
-stop_df <- mutate(stop_df, Dispositions = str_replace_all(stop_df$Dispositions, "character(0)", ""))
+stop_df <- mutate(stop_df, Dispositions = str_match_all(stop_df$Dispositions, "[a-zA-Z0-9]{6}"))
 
-dispositions <- separate(stop_df, Dispositions, into = c("Individual_1", "Individual_2", "Individual_3", "Individual_4", "Individual_5", "Individual_6"), extra = "merge", fill = "right")
+dispositions <- separate(stop_df, Dispositions, into = c("Empty", "Individual_1", "Individual_2", "Individual_3", "Individual_4", "Individual_5"), extra = "merge", fill = "right")
+
 
 View(stop_df)
 View(dispositions)
-###
+
+###IGNORE EVERYTHING AFTER THIS
 
 dispositions <- separate(stop_df, Dispositions, into = c("Individual_1", "Individual_2", "Individual_3", "Individual_4", "Individual_5", "Individual_6"), extra = "merge", fill = "right")
 
