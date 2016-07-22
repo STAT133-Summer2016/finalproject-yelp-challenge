@@ -10,11 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyr)
 library(dplyr)
 library(stringr)
-<<<<<<< HEAD
-library(lubridate)
-library(ggplot2)
-=======
->>>>>>> 06a639aad78add78e6b9e6e33ba2b089d0df4d59
+
 
 #Read data
 stop_df <- read.csv("~/Desktop/Berkeley_PD_-_Stop_Data.csv")
