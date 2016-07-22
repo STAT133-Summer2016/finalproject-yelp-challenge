@@ -39,8 +39,7 @@ stop_df <- stop_df %>%
 
 # Creating new entries for multiple people in one disposition
 stop_df <- stop_df %>%
-  separate(Dispositions, into = c("1", "2", "3", "4", "5"), extra = "merge", fill = 
-             "right") %>%
+  separate(Dispositions, into = c("1", "2", "3", "4", "5"), extra = "merge", fill = "right") %>%
   gather(key = Individual, value = Dispositions, -Incident.Type, -Incident.Number, -Call.Date.Time, -Location, -Other) %>%
   na.omit() %>%
   arrange(Incident.Number)
