@@ -30,11 +30,13 @@ stop_df <- stop_df %>%
   mutate(Other = str_replace_all(Other, "^[ ,]{0,4}", "")) %>%
   mutate(Other = str_replace(Other, ",$", ""))
 
-# Delete Other information from Disposition
+# Remove Other information from Disposition
 OtherInformation <- c( "^M$" = "", ", M$" = "", "M, P$" = "", "P[, ]{0,2}" = "", "AR[, ]{0,2}" = "", "IN[, ]{0,2}" = "", "FC[, ]{0,2}" = "", "CO[, ]{0,2}" = "", "MH[, ]{0,2}" = "", "TOW[, ]{0,2}" = "", "0[, ]{0,2}" = "", "00000[, ]{0,2}" = "")
 stop_df <- stop_df %>%
   mutate(Dispositions = str_replace_all(Dispositions, OtherInformation)) %>%
   mutate(Dispositions = str_replace_all(Dispositions, "[, ]{0,2}$", ""))
+
+# Creating new entries for multiple people in one disposition
 
 View(stop_df)
 
