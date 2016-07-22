@@ -2,6 +2,8 @@
 # Shane Lynn 10/10/2013 at http://www.r-bloggers.com/batch-geocoding-with-r-and-google-maps/
 # Modified by Rebecca Reus for use with Berkeley policing data for year 2016
 
+setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/Rebeccas_location_Code")
+
 #load up the ggmap library and data wrangling / string analysis libraries:
 library(sp)
 library(ggmap)
@@ -13,7 +15,7 @@ library(lubridate)
 library(ggplot2)
 
 # row number to finish at (will start at the last spot):
-number_of_rows_to_do<-2496
+number_of_rows_to_do<-5000
 geocodeQueryCheck()
 
 # get the input data for police stops in Berkeley:
