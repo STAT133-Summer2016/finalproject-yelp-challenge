@@ -50,11 +50,19 @@ stop_df <- stop_df %>%
   na.omit() %>%
   arrange(Incident.Number)
 
-
-
+# Separate information about people
+stop_df<- stop_df %>%
+    filter(nchar(Dispositions) == 6) %>%
+      mutate(Race = substr(Dispositions,1,1)) %>%
+        mutate(Gender = substr (Dispositions,2,2)) %>%
+          mutate(AgeRange = substr (Dispositions,3,3)) %>%
+            mutate(Reason =substr(Dispositions,4,4)) %>%
+              mutate(Enforcement = substr(Dispositions,5,5)) %>%
+                 mutate(CarSearch = substr(Dispositions,6,6))
 
 View(stop_df)
 
+<<<<<<< HEAD
 
 
 ###IGNORE EVERYTHING AFTER THIS
@@ -185,6 +193,8 @@ dispositions <- left_join(dispositions, dispositions_other_characters_6)
 dispositions <- dispositions[,c(1:4, 11:17, 6, 18:24, 7, 25:31, 8, 32:38, 9, 39:45, 10, 46:52)]
 View(dispositions)
 
+=======
+>>>>>>> 6a0296c69918b2a2429a9badb1b36f38ec28be12
 ```
 
 
