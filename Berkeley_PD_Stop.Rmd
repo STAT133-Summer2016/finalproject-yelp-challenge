@@ -24,7 +24,7 @@ stop_df <- stop_df %>%
   mutate(Dispositions = str_replace(Dispositions, "FA - TIGHT, ", "")) %>%
   mutate(Dispositions = str_replace(Dispositions, "[0]{6}[1]?", "00000"))
 
-# Split information about the individual from other information
+# Split other information from information about the individual(s)
 stop_df <- stop_df %>%
   mutate(Other = str_replace_all(Dispositions, "[ ,]{0,2}[a-zA-Z0-9]{6}", "")) %>%
   mutate(Other = str_replace_all(Other, "^[ ,]{0,4}", "")) %>%
@@ -39,6 +39,7 @@ stop_df <- stop_df %>%
 stop_df <- separate(stop_df, Dispositions, into = c("Individual_1", "Individual_2", "Individual_3", "Individual_4", "Individual_5"), extra = "merge", fill = "right")
 
 stop_df <- melt(stop_df, id = c("Incident.Number", "Call.Date.Time", "Location", "Incident.Type", "Other")) %>%
+  na.omit() %>%
   arrange(Incident.Number)
 
 View(stop_df)
@@ -48,7 +49,7 @@ View(stop_df)
 
 ###IGNORE EVERYTHING AFTER THIS
 
-dispositions <- separate(stop_df, Dispositions, into = c("Individual_1", "Individual_2", "Individual_3", "Individual_4", "Individual_5", "Individual_6"), extra = "merge", fill = "right")
+dispositions <- separate(stop_df, Dispositions, into = c("Individual_1", "Individual_2", "Individual_3", "Individual_4", "Individual_5"), extra = "merge", fill = "right")
 
 #deconstructing_6_characters <- function (x) {
  # dispositions %>%
