@@ -24,20 +24,29 @@ stop_by$AgeRange <- as.factor(stop_by$AgeRange)
 stop_by <- stop_by %>%
   mutate(hour = hour(Call.Date.Time))
 
-#Sample graph
+#Race, Gender, and Reason
 stop_race <- ggplot(stop_by, aes(x = Race, fill = Gender)) + 
   geom_bar(aes(y = ..count../sum(..count..))) + 
   scale_fill_manual(values = c("skyblue1", "pink")) +
   labs(y = "Density") +
   facet_wrap(~Reason)
+#Remove input "E" in the R column
 
-#Gender, race, and enforcement
+#Reason, Gender, and Enforcement
+stop_reason <- ggplot(stop_by, aes(x = Reason, fill = Gender)) + 
+  geom_bar(aes(y = ..count../sum(..count..))) + 
+  scale_fill_manual(values = c("skyblue1", "pink")) +
+  labs(y = "Density") +
+  facet_wrap(~Enforcement)
+
 
 stop_age <- ggplot(stop_by, aes(x = AgeRange, fill = Gender)) + geom_bar() 
 stop_reason <- ggplot(stop_by, aes(x = Reason, fill = Gender)) + geom_bar()
 stop_time <- ggplot(stop_by, aes(x = hour, fill = AgeRange)) + geom_bar()
 
 stop_race
+stop_reason
+
 
 View(stop_by)
 ```
