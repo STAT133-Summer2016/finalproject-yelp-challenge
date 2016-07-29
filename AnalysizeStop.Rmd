@@ -27,8 +27,11 @@ stop_by <- stop_by %>%
 #Sample graph
 stop_race <- ggplot(stop_by, aes(x = Race, fill = Gender)) + 
   geom_bar(aes(y = ..count../sum(..count..))) + 
+  scale_fill_manual(values = c("skyblue1", "pink")) +
   labs(y = "Density") +
   facet_wrap(~Reason)
+
+#Gender, race, and enforcement
 
 stop_age <- ggplot(stop_by, aes(x = AgeRange, fill = Gender)) + geom_bar() 
 stop_reason <- ggplot(stop_by, aes(x = Reason, fill = Gender)) + geom_bar()
