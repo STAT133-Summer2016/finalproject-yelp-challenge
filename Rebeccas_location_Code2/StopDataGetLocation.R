@@ -155,7 +155,7 @@ stop_df <- stop_df %>%
 ####################################################################################################################################
 
 # Choose a row number to finish at (will start at the last spot using the temp file):
-number_of_rows_to_do <- 9263
+number_of_rows_to_do <- 10500
 
 # Select the addresses from the Location column of stop_df to run through Google:
 #address<-head(stop_df$Location,number_of_rows_to_do)
