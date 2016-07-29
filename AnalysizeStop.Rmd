@@ -1,0 +1,44 @@
+---
+title: "Analyze Stop Data"
+author: "Mengyu Li"
+date: "July 22, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+
+# Read data
+stop_by <- read_csv("cleaned_stop_data.csv")
+
+stop_by$Call.Date.Time <- mdy_hm(stop_by$Call.Date.Time)
+stop_by$AgeRange <- as.factor(stop_by$AgeRange)
+
+stop_by <- stop_by %>%
+  mutate(hour = hour(Call.Date.Time))
+
+#Remove input "E" from the R column
+
+stop_race <- ggplot(stop_by, aes(x = Reason, fill = Enforcement)) + 
+  geom_bar(aes(y = ..count../sum(..count..))) + 
+  labs(y = "Density") +
+  facet_wrap(~Race)
+
+stop_race <- ggplot(stop_by, aes(x = Reason, fill = Enforcement)) + 
+  geom_bar(aes(y = ..count../sum(..count..))) + 
+  labs(y = "Density") +
+  scale_fill_brewer(palette = "Set1") +
+  facet_grid(Race~Gender)
+
+stop_race
+
+View(stop_by)
+```
+
