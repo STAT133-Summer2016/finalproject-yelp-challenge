@@ -14,7 +14,12 @@ library(readr)
 library(ggplot2)
 library(dplyr)
 library(lubridate)
+library(stringr)
+library(ggvis)
 
+```
+
+```{r}
 # Read data
 stop_by <- read_csv("cleaned_stop_data.csv")
 
@@ -22,17 +27,163 @@ stop_by$Call.Date.Time <- mdy_hm(stop_by$Call.Date.Time)
 stop_by$AgeRange <- as.factor(stop_by$AgeRange)
 
 stop_by <- stop_by %>%
-  mutate(hour = hour(Call.Date.Time))
+  mutate(Hour = as.integer(hour(Call.Date.Time))) %>%
+  mutate(Day = as.factor(as.integer(wday(Call.Date.Time))))
 
 
-stop_race <- ggplot(stop_by, aes(x = Race, fill = AgeRange)) + geom_bar()
-stop_age <- ggplot(stop_by, aes(x = AgeRange, fill = Gender)) + geom_bar()
-stop_reason <- ggplot(stop_by, aes(x = Reason, fill = Gender)) + geom_bar()
-stop_time <- ggplot(stop_by, aes(x = hour, fill = AgeRange)) + geom_bar()
-
-
-
-
-View(stop_by)
 ```
+
+```{r}
+#Remove input "E" from the R column
+stop_race <- stop_by %>%
+  ggvis(x = ~Race , fill = ~AgeRange) %>%
+  layer_bars() %>%
+  add_tooltip(function(stop_by) stop_by$AgeRange) 
+stop_race
+
+```
+
+
+```{r}
+stop_day <- stop_by %>%
+  ggvis(x = ~Day, fill = ~Race) %>%
+  layer_bars() %>%
+  add_tooltip(function(stop_by) stop_by$Race)
+stop_day
+```
+
+```{r}
+stop_time <- stop_by %>%
+  ggvis(x = ~Hour, fill := "lightpink") %>%
+  layer_histograms(width = input_slider(1, 12, value = 1, step = 2, label = "width"))
+stop_time
+#width = input_slider(1, 12, step = 2, label = "width")
+```
+
+```{r}
+
+stop_time_percentage <- ggplot(stop_by, aes(x = Hour, fill = AgeRange)) + 
+  geom_bar(aes(y = ..count../sum(..count..))) +
+  labs(y = "Density") +
+  facet_wrap(~AgeRange)
+stop_time_percentage
+
+```
+
+```{r}
+stop_by_hourCount <- stop_by %>%
+  group_by(Hour) %>%
+  summarise(hourcount = n())
+stop_by_ageRangeCount <- stop_by %>%
+  group_by(Hour, AgeRange) %>%
+  summarise(ageCount = n())
+stop_by_percentage <- left_join(stop_by_ageRangeCount, stop_by_hourCount)
+stop_by_percentage <- stop_by_percentage %>%
+  mutate(percentage = ageCount/hourcount)
+
+stop_time_percentage2 <- ggplot(stop_by_percentage, aes(x = Hour, fill = AgeRange)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  labs(y = "Density") +
+  facet_wrap(~AgeRange)
+stop_time_percentage2
+```
+
+```{r}
+stop_by_hourCount <- stop_by %>%
+  group_by(Hour) %>%
+  summarise(hourcount = n())
+stop_by_raceRangeCount <- stop_by %>%
+  group_by(Hour, Race) %>%
+  summarise(raceCount = n())
+stop_by_percentage1 <- left_join(stop_by_raceRangeCount, stop_by_hourCount)
+stop_by_percentage1 <- stop_by_percentage1 %>%
+  mutate(percentage = raceCount/hourcount)
+
+stop_time_percentage3 <- ggplot(stop_by_percentage1, aes(x = Hour, fill = Race)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  labs(y = "Density") +
+  facet_wrap(~Race)
+stop_time_percentage3
+```
+
+```{r}
+stop_by_reason_race <- stop_by %>%
+  group_by(Race, Reason) %>%
+  summarise(totalCount = n())
+stop_by_arrest <- stop_by %>%
+  filter(Enforcement == "A") %>%
+  group_by(Race, Reason) %>%
+  summarise(arrestCount = n())
+stop_by_percentage_race <- left_join(stop_by_reason_race, stop_by_arrest)
+stop_by_percentage_race <- stop_by_percentage_race %>%
+  mutate(percentage = arrestCount / totalCount)
+
+stop_arrest <- ggplot(stop_by_percentage_race, aes(x = Race, fill = Race)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  labs(y = "Density") +
+  facet_wrap(~Reason)
+stop_arrest
+```
+
+```{r}
+stop_by_reason_age <- stop_by %>%
+  group_by(AgeRange, Reason) %>%
+  summarise(totalCount = n())
+stop_by_arrest_age <- stop_by %>%
+  filter(Enforcement == "A") %>%
+  group_by(AgeRange, Reason) %>%
+  summarise(arrestCount = n())
+stop_by_percentage_age <- left_join(stop_by_reason_age, stop_by_arrest_age)
+stop_by_percentage_age <- stop_by_percentage_age %>%
+  mutate(percentage = arrestCount / totalCount)
+
+stop_arrest_age <- ggplot(stop_by_percentage_age, aes(x = AgeRange, fill = AgeRange)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  labs(y = "Density") +
+  facet_wrap(~Reason)
+stop_arrest_age
+```
+
+```{r}
+stop_by_reason_gender <- stop_by %>%
+  group_by(Gender, Reason) %>%
+  summarise(totalCount = n())
+stop_by_arrest_gender <- stop_by %>%
+  filter(Enforcement == "A") %>%
+  group_by(Gender, Reason) %>%
+  summarise(arrestCount = n())
+stop_by_percentage_gender <- left_join(stop_by_reason_gender, stop_by_arrest_gender)
+stop_by_percentage_gender <- stop_by_percentage_gender %>%
+  mutate(percentage = arrestCount / totalCount)
+
+stop_arrest_gender <- ggplot(stop_by_percentage_gender, aes(x = Gender, fill = Gender)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  labs(y = "Density") +
+  facet_wrap(~Reason)
+stop_arrest_gender
+```
+
+
+```{r}
+stop_race <- ggplot(stop_by, aes(x = Reason, fill = Enforcement)) + 
+  geom_bar(aes(y = ..count../sum(..count..))) + 
+  labs(y = "Density") +
+  facet_wrap(~Race)
+stop_race
+
+```
+
+```{r}
+
+stop_race2 <- ggplot(stop_by, aes(x = Reason, fill = Enforcement)) + 
+  geom_bar(aes(y = ..count../sum(..count..))) + 
+  labs(y = "Density") +
+  scale_fill_brewer(palette = "Set1") +
+  facet_grid(Race~Gender)
+
+stop_race2
+
+```
+
+
 

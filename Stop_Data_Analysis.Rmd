@@ -1,0 +1,14 @@
+---
+title: "Stop Data Analysis"
+author: "Mengyu Li"
+date: "July 29, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### About the Berkeley PD Stop Data
+
+The Berkeley PD stop data reflects accidents that have been visited by the Berkeley Police Department. 

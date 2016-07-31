@@ -54,7 +54,13 @@ stop_df <- stop_df %>%
               mutate(Enforcement = substr(Dispositions,5,5)) %>%
                  mutate(CarSearch = substr(Dispositions,6,6))
 
-write.csv(stop_df, "cleaned_stop_data.csv")
+ageVector <- c("1" = "0-18", "2" = "18-29", "3" = "30-39", "4" = "40+")
+stop_df$AgeRange = str_replace_all(stop_df$AgeRange, ageVector)
+
+stop_df$Reason <- str_replace(stop_df$Reason, "E", "W")
+
+
+write.csv(stop_df, "cleaned_stop_data.csv", row.names = FALSE)
 View(stop_df)
 
 ```
