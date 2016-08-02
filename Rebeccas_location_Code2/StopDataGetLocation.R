@@ -154,6 +154,8 @@ stop_df <- stop_df %>%
     yes = str_replace( Location, " BLOCK", "" ), 
     no = Location))                                                  # "BLOCK" Interferes with Google server info
 
+saveRDS( stop_df, 'StopData_stop_df.rds' ) # save this form of stopdf for later.
+
 ####################################################################################################################################
 ## GETTING LOCATION COORDINATES WITH GOOGLE:
 ####################################################################################################################################
@@ -310,6 +312,9 @@ points( finaldf$long, finaldf$lat, col="red", cex=.6 )
 
 # WRITE finaldf to a file, if you would like to use the Location info at another time:
 write.csv( finaldf, file = "StopData_w_Locations.csv")
+tempfilename_finaldf <- paste0( infile, '_temp_finaldf')
+saveRDS( finaldf, tempfilename_finaldf )
+
 
 # Use this code to see how many rows left Google will allow you for today:
 geocodeQueryCheck()
