@@ -65,7 +65,7 @@ stop_time
 stop_time_percentage <- ggplot(stop_by, aes(x = Hour, fill = AgeRange)) + 
   geom_bar(aes(y = ..count../sum(..count..))) +
   labs(y = "Density") +
-  facet_wrap(~AgeRange)
+  facet_wrap(~Race)
 stop_time_percentage
 
 ```
@@ -163,27 +163,6 @@ stop_arrest_gender <- ggplot(stop_by_percentage_gender, aes(x = Gender, fill = G
 stop_arrest_gender
 ```
 
-
-```{r}
-stop_race <- ggplot(stop_by, aes(x = Reason, fill = Enforcement)) + 
-  geom_bar(aes(y = ..count../sum(..count..))) + 
-  labs(y = "Density") +
-  facet_wrap(~Race)
-stop_race
-
-```
-
-```{r}
-
-stop_race2 <- ggplot(stop_by, aes(x = Reason, fill = Enforcement)) + 
-  geom_bar(aes(y = ..count../sum(..count..))) + 
-  labs(y = "Density") +
-  scale_fill_brewer(palette = "Set1") +
-  facet_grid(Race~Gender)
-
-stop_race2
-
-```
 
 
 

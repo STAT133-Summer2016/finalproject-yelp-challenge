@@ -37,6 +37,19 @@ stop_df <- stop_df %>%
   mutate(Dispositions = str_replace_all(Dispositions, OtherInformation)) %>%
   mutate(Dispositions = str_replace_all(Dispositions, "[, ]{0,2}$", ""))
 
+totalIncidentsNumber <- nrow(stop_df)
+typeone <- stop_df %>%
+    filter(Other == "" & Dispositions != "")
+typeoneNumber = nrow(typeone)
+typetwo <- stop_df %>%
+    filter(Other != "" & Dispositions == "")
+typetwoNumber = nrow(typetwo)
+typethree <- stop_df %>%
+    filter(Other != "" & Dispositions != "")
+typethreeNumber = nrow(typethree)
+
+    
+
 # Arranges information in the Dispositions column into separate objects for each individual involved 
 stop_df <- stop_df %>%
   separate(Dispositions, into = c("1", "2", "3", "4", "5"), extra = "merge", fill = "right") %>%
