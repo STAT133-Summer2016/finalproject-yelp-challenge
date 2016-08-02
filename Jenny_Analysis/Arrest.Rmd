@@ -27,6 +27,7 @@ library(scales)
 library(ggvis)
 ```
 
+#load and modify the dataset
 ```{r}
 
 arrestage <-read.csv("Berkeley_PD_Log_-_Arrests.csv")
@@ -71,12 +72,18 @@ naarrest <- na.omit(arrest)
 
 ggplot(naarrest)+
   geom_bar(aes(x=Age, 
-               fill = Sex))+
+               fill = Race))+
+  geom_smooth()
   facet_wrap(~Race)+
  labs(x= "Age",
        y = "Number of people",
        title = "Arrest Data") 
   
+ggplot(naarrest)+
+  geom_point(aes(x=Age, 
+                 y=Race))+
+  geom_smooth()
+
   #scale_x_discrete(limits = c(0,80),
                    #breaks = seq(10,80,10))
 
@@ -181,12 +188,65 @@ ggplot(naarrest)+
               color = Sex,
               shape = Race))
 
+```
+
+# status type and race
+
+```{r}
+#group_by hour, count
 
 
-ggplot(naarrest)+
-  geom_bar(aes(x=Statute.Type,
-               fill = Race))
 
+type1<- arrest %>% 
+  group_by(Statute.Type) %>% 
+  summarise (typecount= n())
+type2 <-arrest %>% 
+  group_by(Race,Statute.Type) %>% 
+  summarise (racecount= n())
+type3 <-arrest %>% 
+  group_by(Age,Statute.Type) %>% 
+  summarise (agecount= n())
+type4 <- left_join(type2,type1, by= "Statute.Type")
+type5 <- left_join(type3,type1, by= "Statute.Type")
+
+
+
+
+#BMC Berkeley Municipal Code
+#BP Business and Professional Code
+#EC Education Code
+#GC Government Code
+#HN Harbors and Navigations Code
+#HS Health and Safety Code
+#PC Penal Code
+#VC Vehicle Code
+#WI Welfare and Institutions Code
+
+type$Statute.Type <- str_replace(type$Statute.Type, ";$", "")
+
+#race arrest plot
+
+#Probability of BPD arrest data for a specific age range in a specific hour 
+ggplot(na.omit(type4))+
+  geom_bar(aes(x=Statute.Type, 
+                     y=(racecount/typecount),
+                     fill = Race),
+           stat="identity") +
+  facet_wrap(~Race)+
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 5))+
+  labs(x= "Age",
+       y = "Number of people",
+       title = "Arrest Data") 
+
+
+
+ggplot(na.omit(type5))+
+  geom_bar(aes(x=Statute.Type, 
+                     y=(agecount/typecount),
+                     fill = Age),
+           stat="identity") +
+  facet_wrap(~Age)+
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 5))
 
 
 ```

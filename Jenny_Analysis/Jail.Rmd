@@ -71,10 +71,16 @@ ggplot(najail)+
                fill = Sex))+
   facet_wrap(~Race)
 
+najail$Disposition <- str_replace(najail$Disposition, "NO COMPLAINT", "NC") %>% 
+  str_replace("SANTA RITA JAIL", "SRC") %>% 
+  str_replace("")
+
+
 ggplot(najail)+
   geom_bar(aes(x=Disposition,
                fill = Race))+
-  facet_wrap(~Sex)
+  facet_wrap(~Sex)+
+   scale_x_discrete(labels = function(x) str_wrap(x, width = 5))
 
 ```
 
