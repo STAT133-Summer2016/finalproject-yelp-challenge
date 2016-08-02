@@ -1,0 +1,229 @@
+---
+title: "Arrest and Jail Bookings"
+author: "Shangjun Jiang"
+date: "22 July 2016"
+output: html_document
+---
+
+```{r}
+setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/Jenny_Analysis")
+```
+
+#load packages
+```{r}
+library(xml2)
+library(rvest)
+library(ggplot2)
+library(lubridate)
+library(stringr)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(shiny)
+library(ggvis)
+```
+
+
+#load datasets
+```{r}
+jail <- read.csv("Berkeley_PD_Log_-_Jail_Bookings.csv")
+jail$Age <- as.integer(jail$Age)
+jail$Age[jail$Age<20] <- "0-19"
+jail$Age[jail$Age>=20 & jail$Age<30] <- "20-29"
+jail$Age[jail$Age>=30 & jail$Age<40] <- "30-39"
+jail$Age[jail$Age>=40 & jail$Age<50] <- "40-49"
+jail$Age[jail$Age>=50 & jail$Age<60] <- "50-59"
+jail$Age[jail$Age>=60 & jail$Age<70] <- "60-69"
+jail$Age[jail$Age>=70 & jail$Age<80] <- "70-79"
+jail$Age <- as.factor(jail$Age)
+
+
+
+arrest <- read.csv("Berkeley_PD_Log_-_Arrests.csv")
+arrest$Age <- as.integer(arrest$Age)
+arrest$Age[arrest$Age<20] <- "0-19"
+arrest$Age[arrest$Age>=20 & arrest$Age<30] <- "20-29"
+arrest$Age[arrest$Age>=30 & arrest$Age<40] <- "30-39"
+arrest$Age[arrest$Age>=40 & arrest$Age<50] <- "40-49"
+arrest$Age[arrest$Age>=50 & arrest$Age<60] <- "50-59"
+arrest$Age[arrest$Age>=60 & arrest$Age<70] <- "60-69"
+arrest$Age[arrest$Age>=70 & arrest$Age<80] <- "70-79"
+arrest$Age <- as.factor(arrest$Age)
+       
+jail[jail == ""] <- NA
+
+arrest[arrest == ""] <- NA
+
+#str(jail) # 'data.frame':	249 obs. of  19 variables:
+
+#str(arrest) # 232 obs. of  16 variables:
+```
+
+# differences between jail and arreasts   match 28/29  
+# delete status desription
+# subject, race, age, height, weight, hair, eyes, status, status.type, status.description, case.number
+
+
+#graph the race data  1. Black 2. White 
+# status. type 
+#graph the age data 
+
+```{r}
+## Disposition 
+
+length(which(jail$Disposition == "NO COMPLAINT"))   #28
+length(jail[which(jail$Disposition == "NO COMPLAINT"),]) #19
+jail[which(jail$Disposition == "NO COMPLAINT"),]
+
+jail[jail$Disposition == "BAILED",]  #19
+
+length(which(jail$Disposition == "BAILED"))  #14
+
+length(jail[jail$Disposition == "CITE-JAIL",])  #19
+
+#SANTA RITA JAIL
+length(jail[jail$Disposition == "SANTA RITA JAIL",])  #19
+
+length(jail[jail$Disposition == "849(b) PC-RELEASEL",])  #19
+
+jail$Disposition == "849(b) PC-RELEASEL"
+
+
+
+```
+
+#clean jail dataset and arrest dataset in order to combine them together
+```{r}
+
+cleanedjail <- jail
+cleanedjail$Statute <- NULL
+cleanedjail$Statute.Description <- NULL
+cleanedjail$Height <- NULL
+cleanedjail$Weight <- NULL
+cleanedjail$Hair <- NULL
+cleanedjail$Eyes <- NULL
+cleanedjail$Date.Of.Birth <- NULL
+cleanedjail$Subject <- tolower(cleanedjail$Subject)
+names(cleanedjail) <- c("Booking_Number","Booking_Date_Time", "Subject", "Race", "Sex","Age", "Occupation","Statute_Type", "Arrest_Date_Time","Case_Number","Booking_Agency", "Disposition")
+
+cleanedarrest <- arrest
+cleanedarrest$Statute <- NULL
+cleanedarrest$Statute.Description <- NULL
+cleanedarrest$Height <- NULL
+cleanedarrest$Weight <- NULL
+cleanedarrest$Hair <- NULL
+cleanedarrest$Eyes <- NULL
+cleanedarrest$Date.of.Birth <- NULL
+cleanedarrest$Subject <- tolower(cleanedarrest$Subject)
+names(cleanedarrest) <- c("Arrest_Number", "Date_Time", "Arrest_Type", "Subject", "Race", "Sex", "Age", "Statute_Type", "Case_Number")
+
+names(cleanedarrest)
+names(cleanedjail)
+
+comb <- inner_join(cleanedarrest,cleanedjail, by=c("Case_Number", "Race", "Sex", "Age", "Subject", "Statute_Type"))
+names(comb)
+
+#join two lists together
+ja <- inner_join(arrest,jail, by="Case.Number")
+left_join
+str(ja) #'data.frame':	28 obs. of  23 variables:
+
+```
+
+
+```{r}
+ggplot(cleanedjail)+
+  geom_bar(aes(x=Booking_Agency))
+
+#CA0010300 Berkeley Police Department
+#CA0019700 UC Berkeley Police Department
+
+```
+
+# Disposition
+```{r}
+ggplot(jail)+
+  geom_bar(aes(x=Disposition))
+
+```
+
+
+
+#people who are in jail
+```{r}
+
+ggplot(na.omit(jail))+
+  geom_bar(aes(x=Age, 
+               fill = Race))+
+  facet_wrap(~Sex)+
+  labs(x= "Age",
+       y = "Number of people",
+       title = "Jail Data")
+
+
+ggplot(na.omit(jail))+
+  geom_bar(aes(x=Occupation, 
+               fill=Race))
+
+
+```
+
+
+
+
+## Arrest dataset
+
+
+```{r,fig.width=10, fig.asp=0.7}
+ggplot(na.omit(arrest))+
+  geom_bar(aes(x=Age, fill = Sex))+
+  facet_wrap(~Race)+
+ labs(x= "Age",
+       y = "Number of people",
+       title = "Arrest Data")
+```
+
+
+#people who are arrest
+```{r}
+ggplot(na.omit(arrest))+
+  geom_bar(aes(x=Age, fill = Sex))+
+  facet_wrap(~Race)+
+ labs(x= "Age",
+       y = "Number of people",
+       title = "Arrest Data")
+
+
+
+ggplot(na.omit(arrest))+
+  geom_bar(aes(x=Age, fill = Race))+
+  facet_wrap(~Sex)
+
+arrest$Age <- as.factor(arrest$Age)
+
+
+ggplot(na.omit(arrest))+
+  geom_bar(aes(x=Race, fill=Age))+
+  facet_wrap(~Sex)
+
+```
+
+#occupation
+```{r}
+ggplot(na.omit(jail))+
+  geom_bar(aes(x=Occupation))
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
