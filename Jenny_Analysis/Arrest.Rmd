@@ -187,6 +187,8 @@ ggplot(naarrest)+
   geom_bar(aes(x=Statute.Type,
                fill = Race))
 
+
+
 ```
 
 
