@@ -110,7 +110,7 @@ ggmap(berkMap) +
 		axis.title = element_blank (),
 		axis.ticks = element_blank ()
 		) + 
-  ggtitle("BPD Stops by Incident Type, 2015-2016") 
+  ggtitle("All BPD Stops by Incident Type, 2015-2016") 
 ```
 
 ## MAP 2.1
@@ -125,7 +125,7 @@ ggmap(berkMap) +
 		axis.title = element_blank (),
 		axis.ticks = element_blank ()
 		) + 
-  ggtitle("BPD Stop Car Searches by Race 2015-2016") +
+  ggtitle("BPD All Stops w/ Car Searches by Race 2015-2016") +
   facet_wrap(~ Race, ncol = 3 ) 
 ```
 
@@ -182,7 +182,7 @@ ggmap(berkMap) +
 		axis.title = element_blank (),
 		axis.ticks = element_blank ()
 		) + 
-  ggtitle("BPD Stops: Emergency Psch Evaluation, by Race 2015-2016") 
+  ggtitle("BPD Stops with Emergency Psch Evaluation, by Race 2015-2016") 
 
 ```
 
@@ -198,7 +198,7 @@ ggmap(berkMap) +
 		axis.title = element_blank (),
 		axis.ticks = element_blank ()
 		) + 
-  ggtitle("BPD Stops by Gender, 2015-2016") 
+  ggtitle("All BPD Stops by Gender, 2015-2016") 
 ```
 
 ## MAP 4:
@@ -221,7 +221,7 @@ df <- subset(mergedf, as.character(Reason) == "Traffic")
 
 ggmap(berkMap) +
   geom_point(aes(x = long, y = lat, colour = Race, size= Arrest), data = df, alpha = 0.5) + 
-  scale_size_discrete( range = c(7, 3) ) +
+  scale_size_discrete( range = c(5, 2) ) +
   theme ( 
 		panel.grid.major = element_blank (), # remove major grid
 		panel.grid.minor = element_blank (),  # remove minor grid
@@ -349,7 +349,7 @@ BerkMap7 +
 # ```
 
 ## MAP 9
-```{r, fig.height = 25, fig.width = 5}
+```{r}
 ggmap(berkMap) +
   stat_density2d( aes(x = long, y = lat, fill = ..level.., alpha = ..level..),
     bins = I(5), geom = "polygon", data = mergedf ) +
@@ -362,7 +362,7 @@ ggmap(berkMap) +
 ```
 
 ## MAP 10 : AgeRange Density Facet
-```{r, fig.height = 25, fig.width = 5}
+```{r}
 ggmap(berkMap) +
   stat_density2d( aes(x = long, y = lat, fill = ..level.., alpha = ..level..),
     bins = I(5), geom = "polygon", data = mergedf ) +
@@ -375,7 +375,7 @@ ggmap(berkMap) +
 ```
 
 ## MAP 11: By Race Again
-```{r, fig.height = 25, fig.width = 5}
+```{r}
 # ggmap(berkMap) +
 # geom_point(aes(x = long, y = lat, colour = Race, size = Race),
 #   data = mergedf)
@@ -454,12 +454,12 @@ bMap12
 ## Population by census block group:
 ```{r}
 shpfile <- "Census_tracts_2010.shp"
-sh <- readShapePoly("C:/Users/Rebecca/Dropbox/School/2016_su_School/stat133/finalproject_angry_ladies/Rebeccas_location_Code2/Census_Tract_Polygons2010/Census_tracts_2010.shp")
+sh <- readShapePoly("Census_Tract_Polygons2010/Census_tracts_2010.shp")
 plot(sh)
 sh@data$ID <- as.numeric(sh@data$ID)
 
 # Read in the demographic data and merge on Neighbourhood Id
-demo <- read.csv(file="Census_tracts_2010.csv", header=T)
+demo <- read.csv(file="Census_tracts_2010.csv", header = TRUE)
 sh2 <- merge(sh, demo, by='ID')
 
 # Set the palette
@@ -477,17 +477,18 @@ plot(sh, col=cols)
 ```
 
 
-# Map 15
-```{r}
-j <- merge( b3, demo, by = "group"  )
+<!-- # Map 15 -->
+<!-- ```{r} -->
+<!-- sh2data <- sh2@data -->
+<!-- j <- merge( sh2data, demo, by.x= "GEOID10.x", by.y="GEOID10"  ) -->
 
-# Plot
-bMap12 <- ggmap(berkMap) +
-  geom_polygon(aes(x=long,y=lat, group=group, fill=TotalPop), data=j, color='white') +
-  scale_fill_gradient(low='white', high='orange') +
-  geom_point( data = mergedf, aes(x = long, y = lat), alpha = 0.2, size = 3, color = 'red' )
-bMap12
-```
+<!-- # Plot -->
+<!-- bMap12 <- ggmap(berkMap) + -->
+<!--   geom_polygon(aes(x=long,y=lat, group=group, fill=TotalPop), data=sh2, color='white') + -->
+<!--   scale_fill_gradient(low='white', high='orange') + -->
+<!--   geom_point( data = mergedf, aes(x = long, y = lat), alpha = 0.2, size = 3, color = 'red' ) -->
+<!-- bMap12 -->
+<!-- ``` -->
 
 
 
