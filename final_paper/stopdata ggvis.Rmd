@@ -1,8 +1,9 @@
 ---
-title: "Stop Data Analysis"
-author: "Mengyu Li"
-date: "July 29, 2016"
-output: pdf_document
+title: "Stopdata"
+author: "Shangjun Jiang"
+date: "2 August 2016"
+output: html_document
+runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -10,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-#setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/final_paper")
+setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/final_paper")
 ```
 
 ```{r, echo=FALSE}
@@ -252,7 +253,7 @@ stop_time_percentage3
 (3) Ratio of incidents commited by Asian people, Hispanic people and other people fluctuate during the daytime and the night, with an average ratio of 8%, 11% and 9% respectively.
 
 
-### Analysis of preference of Berkeley Police Department arresting people
+### Analysis of prefence of Berkeley Police Department arresting people
 #### Picture: Probability of arrested by BPD of a specific race for a specific reason
 ```{r,echo=FALSE}
 stop_by_reason_race <- stop_by %>%
@@ -344,10 +345,10 @@ stop_arrest_gender
 ```
 
 #### Table: Probability of arrested by BPD of a specific gender range for a specific reason
-P     | I (Investigation) |K (Probation/ Parole)| R (Reasonable Suspicion)|T (Traffic)| W (Wanted) 
-----  |------------------ |---------------------|-------------------------|-----------|-------
-F     | 9.05%             | 50.00%              | 5.00%                   | 1.10%     | 28.57%  
-M     | 8.26%             | 20.11%              | 5.42%                   | 1.85%     | 37.04%  
+P     | I      | K     | R     | T     | W    
+----  |------- |-------|-------|-------|-------
+F     | 9.05%  | 50.00%| 5.00% | 1.10% | 28.57%  
+M     | 8.26%  | 20.11%| 5.42% | 1.85% | 37.04%  
 
 (1) Similar to the conclusions above, the probability of arrested in a stop with the reason Traffic is the lowest and wanted is the highest.
 

@@ -1,27 +1,61 @@
 ---
-title: "Stop Data Analysis"
-author: "Mengyu Li"
-date: "July 29, 2016"
-output: pdf_document
+title: "BPD_draftpaper"
+author: "Amy Zhu; Mengyu Li; Rebecca Reus; Shangjun Jiang"
+date: "2 August 2016"
+output: html_document
+runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-```{r}
-#setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/final_paper")
-```
-
-```{r, echo=FALSE}
+library(sp)
+library(ggmap)
+library(tidyr)
 library(readr)
-library(ggplot2)
+library(plyr)
 library(dplyr)
-library(lubridate)
-library(stringr)
 library(ggvis)
 library(tidyr)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(readr)
+library(data.table)
+library(rworldmap)
+library(maps)
+library(mapdata)
+library(maptools)
+library(scales)
+library(RgoogleMaps)
+library(tmap)
+library(sp)
+library(rgdal)
+library(rgeos)
+library(RColorBrewer)
 ```
+
+
+## Introduction
+
+ For the final project, our group cleaned, explored, and analyzed four different data sets from the City of Berkeley that contained information on stops, calls for service, arrests, and jail bookings made by the the police department in 2016 (and 2015 as well for the stop data). Rather than limiting the project to one set of data, four sets were chosen in order to gain a more holistic and comprehensive understanding of the data. The additional variables included expanded the project’s capacity for manipulating data, examining relationships, and improving result reliability. 
+
+#### Data Collection
+
+* [Stop Data (16,000)](https://data.cityofberkeley.info/Public-Safety/Berkeley-PD-Stop-Data/6e9j-pj9p)
+* [Arrest (200)](https://data.cityofberkeley.info/Public-Safety/Berkeley-PD-Log-Arrests/xi7q-nji6)
+* [Jail Bookings (250)](https://data.cityofberkeley.info/Public-Safety/Berkeley-PD-Log-Jail-Bookings/7ykt-c32j)
+* [Calls for Service (4,000)](https://data.cityofberkeley.info/Public-Safety/Berkeley-PD-Calls-for-Service/k2nh-s5h5)
+
+ With the variety of resources and information made available by collating multiple data sets, the objective for the project was to study differences in police activity (in terms of call requests and patrols) and intensity of assessed offenses based on time, race, gender, age, and mental health. As a challenge, another project target was to create a map applet depicting the density of police activity in Berkeley with an interactive component allowing the visitor to input an address and observe their proximity and observe the types of incidences that occurred most commonly in the area. 
+
+	For the stop data, there were 16,255 incidents assessed by the Berkeley police. In each case, the call date and time, location, incident type, and disposition(s) were recorded. The cases typically had a six character disposition, with each character conveying race, gender, age, reason, enforcement, and car search,  respectively, for each subject involved in the incident, although there were additional dispositions, ranging from one to three characters,  that could be input and conveyed other information. In order to prepare the data for exploration, the cleaning process included changing the call date and time to the lubridate format, transforming the addresses into longitude and latitude referencing Google Maps, and separating the information on dispositions into separate row entries for each individual assessed in a case and splitting it further by isolating “other” and six character dispositions into different columns. To improve readability, the acronyms and abbreviations used in the data set were mutated to convey their meanings  (will do soon). 
+
+	The calls for service data (4913 offenses) contained information on the case number, the offense type with a description of said offense, the date and start and end time for each case and the date of case entry into the database, and the location. Because the data set contained little to no information on the subjects apprehended in each case, it was largely used for mapping purposes. 
+
+	The data for arrests (205), and jail bookings (223) contained similar information on case/arrest/booking number, date and time, type, and subject information (name, race, sex, D.O.B., age, height, weight, hair, eyes, and occupation) and statute information (type, description, agency, and disposition). Cleaning required the dates and times to be put into lubridate format, for the two data sets to be compiled in a reasonable, and for other needed adjustments. The same code created for the stop data would be used again to convert address information to longitudinal and latitudinal coordinates. 
+
+
+## Data Analysis
 
 ```{r, echo=FALSE}
 # Read data
@@ -34,6 +68,7 @@ stop_by <- stop_by %>%
   mutate(Hour = as.integer(hour(Call.Date.Time))) %>%
   mutate(Day = as.factor(as.integer(wday(Call.Date.Time))))
 ```
+
 ### About the Berkeley PD Stop Data
 
 The Berkeley PD stop data reflects accidents that have been visited by the Berkeley Police Department. Raw data set is downloaded from City of Berkeley Open Data website and provided by Berkeley Police Department. 
@@ -41,30 +76,6 @@ The Berkeley PD stop data reflects accidents that have been visited by the Berke
 Analysis in this part focuses on the information provided by the dispositions variable. The dispositions variable can be divided into three types. The first type only includes more than one six-character person message. Each character in each person message represents the race, gender and age range of the person, reason and enforcement of the stop, and the car search information during the stop. The second type of the dispositions includes only additional dispositions, such as P for primary cases. The third type of dispositions includes both person information and additional dispositions.
 
 For the analysis in this part, only person information for all the people in each incident and the Call Time/Date of each incident are analyzed.
-
-
-### Introduction
-
-items                                | count    | percentage
----------------------------------    | -------- |-------------------
-total incidents reported             | 16255    |     
-dispositions of type one             | 13016    | 80.07%
-dispositions of type two             | 2346     | 14.43%
-dispositions of type three           | 845      | 5.20%
-blank dispositions                   | 48       | 0.30%
-incidents with person information    | 13861    | 85.27%
-  incidents with 1 person            | 13494    | 97.352%
-  incidents with 2 people            | 322      | 2.323%              
-  incidents with 3 people            | 33       | 0.238%
-  incidents with 4 people            | 6        | 0.043%
-  incidents with 5 people            | 6        | 0.043%
-total personnel reported             | 14291    |
-
-
-(1) From 01/26/2015 to 04/30/2016, the Berkeley Police Department(or BPD) stopped for 16225 incidents. 80.07% of all stops report only personnel information, 14.43% report only additional information, 5.20% report both and 0.30% report none.
-
-(2) Among all the stops, 13851 incidents recorded 14291 personnel dispositions in total. Of the incidents with the personal dispositions, 97.352% involves only one person, 2.648% involves more than two people. There are at most 5 people involved in one incident. 
-
 
 ### Analysis of Race
 #### Picture: count of person recorded in each race
@@ -122,51 +133,7 @@ stop_time_percentage
 
 (5) Black people contribute a especially high percentage of the incidents at night, while the white people contribute a especially high percentage of the incidents at the noon.
 
-
-### Analysis of Day
-####Picture: count of person recorded in each day in a week
-```{r, echo=FALSE}
-stop_day <- stop_by %>%
-  ggvis(x = ~Day, fill = ~Race) %>%
-  layer_bars() %>%
-  add_tooltip(function(stop_by) stop_by$Race)
-stop_day
-```
-
-```{r, eval=FALSE, echo=FALSE}
-stop_day_total_table <- stop_by %>%
-    group_by(Day) %>%
-    summarise(totaLCount = n())
-stop_day_race_table <- stop_by %>%
-    group_by(Day, Race) %>%
-    summarise(count = n())
-stop_day_table <- left_join(stop_day_race_table, stop_day_total_table, by = "Day")
-stop_day_table <- stop_day_table %>%
-    spread(key = Race, value = count)
-stop_day_table
-```
-####Picture: count of person recorded in each day in a week
-Day   | Count | A    | B    | H    | O    | W
-----  |------ |------|------|------|------|------
-1     | 1692  | 116  | 653  | 221  | 159  | 543
-2     | 1665  | 149  | 543  | 182  | 166  | 625
-3     | 2344  | 189  | 645  | 231  | 236  | 1043
-4     | 2287  | 206  | 616  | 251  | 244  | 970
-5     | 1941  | 152  | 592  | 223  | 168  | 806
-6     | 2231  | 186  | 764  | 268  | 203  | 810
-7     | 2131  | 143  | 823  | 300  | 208  | 657
-
-(1) Among all the day in a week, the number of incidents happened on Sunday and Monday are much less than those happened through Tuesday and Saturday. 
-
-(2) The count of records of Asian people is much less than that of any other race of people in each day and the whole week.
-
-(3) Asian people are less liable to commit an incident on Sunday, and more liable to commit an incident on Wednesday. 
-
-(4) Black and Hispanic people are less liable to commit an incident on Monday, and more liable to commit an incident on Saturday.
-
-(5) White people are less liable to commit an incident on Sunday, and more liable to commit an incident on Tuesday and Wednesday, which is similar to Asian people.
-
-### Analysis of incidents of each hour in a day
+## Analysis of incidents of each hour in a day
 #### Picture: count of person recorded in each hour in a day
 ```{r, echo=FALSE}
 stop_time <- stop_by %>%
@@ -174,7 +141,9 @@ stop_time <- stop_by %>%
   layer_histograms(width = input_slider(1, 12, value = 1, step = 2, label = "width"))
 stop_time
 ```
+
 Note: you can change the value of the input slider to see the number of incidents happened in specific time span of the day.
+
 ```{r, eval = FALSE, echo=FALSE}
 stop_hour <- stop_by %>%
   group_by(Hour) %>%
@@ -209,6 +178,7 @@ stop_by_percentage <- left_join(stop_by_ageRangeCount, stop_by_hourCount, by = "
 stop_by_percentage <- stop_by_percentage %>%
   mutate(percentage = ageCount/hourcount)
 ```
+
 
 ```{r, echo=FALSE}
 stop_time_percentage2 <- ggplot(stop_by_percentage, aes(x = Hour, fill = AgeRange)) + 
@@ -250,7 +220,6 @@ stop_time_percentage3
 (2) White people are obviously liable to commit incidents in the daytime. The average ratio of white people to all people stoped by the Berkeley Police Deparment during the day is about 45%.
 
 (3) Ratio of incidents commited by Asian people, Hispanic people and other people fluctuate during the daytime and the night, with an average ratio of 8%, 11% and 9% respectively.
-
 
 ### Analysis of preference of Berkeley Police Department arresting people
 #### Picture: Probability of arrested by BPD of a specific race for a specific reason
@@ -352,4 +321,111 @@ M     | 8.26%             | 20.11%              | 5.42%                   | 1.85
 (1) Similar to the conclusions above, the probability of arrested in a stop with the reason Traffic is the lowest and wanted is the highest.
 
 (2) Again similar to the conclusion above, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole of female is 50.00%, which is much higher than that of male, which is 20.11%.
+
+
+```{r, echo=FALSE}
+## Read in the Data:
+#finaldf <- readRDS( 'StopData_finaldf.rds' )
+mergedf <- readRDS( 'StopData_merged.rds' )
+```
+
+```{r, echo=FALSE}
+## Location info:
+latmax <- max( mergedf$lat, na.rm = TRUE ) 
+latmin <- min( mergedf$lat, na.rm = TRUE )
+lonmax <- max( mergedf$long, na.rm = TRUE ) 
+lonmin <- min( mergedf$long, na.rm = TRUE )
+latvals <- c( latmin, latmax )
+lonvals <- c( lonmin, lonmax )
+```
+
+
+```{r, echo=FALSE}
+## Make the variables factors:
+mergedf$CarSearch <- factor(mergedf$CarSearch)
+levels(mergedf$CarSearch) <- c("No Search", "Search")  
+
+mergedf$Race <- factor(mergedf$Race)
+levels(mergedf$Race) <- c("Asian", "Black", "Hispanic", "Other", "White")
+
+mergedf$Enforcement <- factor(mergedf$Enforcement)
+levels(mergedf$Enforcement) <- c("Arrest", "Citation", "Other", "Warning")
+
+mergedf$Reason <- factor(mergedf$Reason)
+levels(mergedf$Reason) <- c("Other", "Investigation", "Probation/Parole", "Reasonable Suscipcion", "Traffic", "Wanted")
+
+mergedf <- mergedf %>%
+  mutate(Arrest = ifelse( 
+    as.character(Enforcement) == "Arrest", 
+    "Arrested",
+    "Not Arrested") ) %>%
+  mutate(Arrest = factor(Arrest))
+
+v <- factor(mergedf$Other)
+levels(v)
+
+mergedf <- mergedf %>%
+  mutate(Emergency.Psych.Eval = ifelse( str_detect(as.character(Other), "MH"), 
+                                        yes = "Yes",
+                                        no = "No") )
+
+mergedf$Emergency.Psych.Eval <- factor(mergedf$Emergency.Psych.Eval)
+
+berkMap = map = get_map(location = c( lon = mean(lonvals), lat = mean(latvals) ), zoom = 14)
+
+```
+
+
+## MAP 1:All BPD Stops Density, 2015-2016
+```{r, fig.width=10, fig.asp=0.8, echo=FALSE}
+# a contour plot
+ggmap(berkMap) +
+  stat_density2d(aes(x = long, y = lat, fill= ..level.., alpha = .2* ..level..),
+    size = 2, bins = 5, data = mergedf, geom = "polygon") +
+  scale_fill_gradient(low = "black", high = "red") +
+    theme (panel.grid.major = element_blank (), # remove major grid
+		       panel.grid.minor = element_blank (),  # remove minor grid
+		       axis.text = element_blank (), 
+		       axis.title = element_blank (),
+	         axis.ticks = element_blank ()) + 
+  ggtitle("All BPD Stops Density, 2015-2016") +
+  labs(alpha = element_blank())+
+  guides(alpha = FALSE)
+
+```
+
+## MAP 2: BPD Stop Contour Map of Berkeley by Race
+```{r, fig.height = 5, fig.width = 10, echo=FALSE}
+ggmap(berkMap) +
+  stat_density2d( aes(x = long, y = lat, fill = ..level.., alpha = ..level..),
+    bins = I(5), geom = "polygon", data = mergedf ) +
+  scale_fill_gradient2( "StopDensity",
+    low = "white", mid = "orange", high = "red", midpoint = 100) +
+  labs(x = "Longitude", y = "Latitude") + facet_wrap( ~ Race ) +
+  scale_alpha(range = c(.2, .55), guide = FALSE) +
+  ggtitle("BPD Stop Contour Map of Berkeley by Race") +
+  guides(fill = guide_colorbar(barwidth = 1.5, barheight = 10))
+```
+
+## MAP 3: BPD Stop Contour Map of Berkeley by Age Range
+```{r, fig.height = 8, fig.width = 10, echo=FALSE}
+ggmap(berkMap) +
+  stat_density2d( aes(x = long, y = lat, fill = ..level.., alpha = ..level..),
+    bins = I(5), geom = "polygon", data = mergedf ) +
+  scale_fill_gradient2( "Stop Density",
+    low = "white", mid = "orange", high = "red", midpoint = 25) +
+  labs(x = "Longitude", y = "Latitude") + facet_wrap(~ AgeRange) +
+  scale_alpha(range = c(.2, .55), guide = FALSE) +
+  ggtitle("BPD Stop Contour Map of Berkeley by Age Range") +
+  guides(fill = guide_colorbar(barwidth = 1.5, barheight = 10))
+```
+
+We found that the 
+
+
+
+
+
+
+
 
