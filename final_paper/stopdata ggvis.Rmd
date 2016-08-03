@@ -1,0 +1,356 @@
+---
+title: "Stopdata"
+author: "Shangjun Jiang"
+date: "2 August 2016"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/final_paper")
+```
+
+```{r, echo=FALSE}
+library(readr)
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+library(stringr)
+library(ggvis)
+library(tidyr)
+```
+
+```{r, echo=FALSE}
+# Read data
+stop_by <- read_csv("cleaned_stop_data.csv")
+
+stop_by$Call.Date.Time <- mdy_hm(stop_by$Call.Date.Time)
+stop_by$AgeRange <- as.factor(stop_by$AgeRange)
+
+stop_by <- stop_by %>%
+  mutate(Hour = as.integer(hour(Call.Date.Time))) %>%
+  mutate(Day = as.factor(as.integer(wday(Call.Date.Time))))
+```
+### About the Berkeley PD Stop Data
+
+The Berkeley PD stop data reflects accidents that have been visited by the Berkeley Police Department. Raw data set is downloaded from City of Berkeley Open Data website and provided by Berkeley Police Department. 
+
+Analysis in this part focuses on the information provided by the dispositions variable. The dispositions variable can be divided into three types. The first type only includes more than one six-character person message. Each character in each person message represents the race, gender and age range of the person, reason and enforcement of the stop, and the car search information during the stop. The second type of the dispositions includes only additional dispositions, such as P for primary cases. The third type of dispositions includes both person information and additional dispositions.
+
+For the analysis in this part, only person information for all the people in each incident and the Call Time/Date of each incident are analyzed.
+
+
+### Introduction
+
+items                                | count    | percentage
+---------------------------------    | -------- |-------------------
+total incidents reported             | 16255    |     
+dispositions of type one             | 13016    | 80.07%
+dispositions of type two             | 2346     | 14.43%
+dispositions of type three           | 845      | 5.20%
+blank dispositions                   | 48       | 0.30%
+incidents with person information    | 13861    | 85.27%
+  incidents with 1 person            | 13494    | 97.352%
+  incidents with 2 people            | 322      | 2.323%              
+  incidents with 3 people            | 33       | 0.238%
+  incidents with 4 people            | 6        | 0.043%
+  incidents with 5 people            | 6        | 0.043%
+total personnel reported             | 14291    |
+
+
+(1) From 01/26/2015 to 04/30/2016, the Berkeley Police Department(or BPD) stopped for 16225 incidents. 80.07% of all stops report only personnel information, 14.43% report only additional information, 5.20% report both and 0.30% report none.
+
+(2) Among all the stops, 13851 incidents recorded 14291 personnel dispositions in total. Of the incidents with the personal dispositions, 97.352% involves only one person, 2.648% involves more than two people. There are at most 5 people involved in one incident. 
+
+
+### Analysis of Race
+#### Picture: count of person recorded in each race
+```{r, echo=FALSE}
+stop_race <- stop_by %>%
+  ggvis(x = ~Race , fill = ~AgeRange) %>%
+  layer_bars() %>%
+  add_tooltip(function(stop_by) stop_by$AgeRange)
+
+stop_race
+```
+
+```{r, echo=FALSE, eval=FALSE}
+stop_race_total_table <- stop_by %>%
+    group_by(Race) %>%
+    summarise(totaLCount = n())
+stop_race_agerange_table <- stop_by %>%
+    group_by(Race, AgeRange) %>%
+    summarise(count = n())
+stop_race_table <- left_join(stop_race_agerange_table, stop_race_total_table, by = "Race")
+stop_race_table <- stop_race_table %>%
+    mutate(percentage = count/totaLCount) %>%
+    select(-count)
+stop_race_table <- stop_race_table %>%
+    spread(key = AgeRange, value = percentage)
+stop_race_table
+```
+
+####Table: count of person recorded in each race
+
+Race  | Count | 0-18 | 18-29 | 30-39 | 40+
+----  |------ |------|-------|-------|-------
+A     | 1141  | 8.50%| 43.47%| 21.03%| 26.99%
+B     | 4636  | 2.29%| 34.97%| 25.09%| 37.66%
+H     | 1676  | 3.22%| 46.12%| 29.18%| 21.47%
+O     | 1384  | 2.67%| 43.28%| 29.17%| 26.87%
+W     | 5454  | 1.72%| 29.45%| 25.39%| 43.44%
+
+#### Picture: count of person recorded of each race in each hour
+```{r, echo=FALSE}
+stop_time_percentage <- ggplot(stop_by, aes(x = Hour, fill = AgeRange)) + 
+  geom_bar(aes(y = ..count..)) +
+  labs(y = "Count") +
+  facet_wrap(~Race)
+stop_time_percentage
+```
+
+(1) Among the 14291 personnel information recorded, white people contributes the largest percentage. 38.16% of all records, namely 5454 people are white. black people contributes the second largest percentage. 32.44% of all records, namely 4636 people are black.
+
+(2) The percentage of people aged from 0 to 18 of each race is less than 9%. People aged from 0 to 18 contributes the smallest percentage in each race, which makes sense in daily life.
+
+(3) Among white people and black people recorded by the BPD, people aged greater than 40  contribute the largest percentage, which are 43.44% and 37.66% respectively.
+
+(4) Among Asian, Hispanic and other people recorded by the BPD, people aged from 18 to 29 contribute the largest percentage, which are 43.37%, 46.12% and 43.28%, respectively.
+
+(5) Black people contribute a especially high percentage of the incidents at night, while the white people contribute a especially high percentage of the incidents at the noon.
+
+
+### Analysis of Day
+####Picture: count of person recorded in each day in a week
+```{r, echo=FALSE}
+stop_day <- stop_by %>%
+  ggvis(x = ~Day, fill = ~Race) %>%
+  layer_bars() %>%
+  add_tooltip(function(stop_by) stop_by$Race)
+stop_day
+```
+
+```{r, eval=FALSE, echo=FALSE}
+stop_day_total_table <- stop_by %>%
+    group_by(Day) %>%
+    summarise(totaLCount = n())
+stop_day_race_table <- stop_by %>%
+    group_by(Day, Race) %>%
+    summarise(count = n())
+stop_day_table <- left_join(stop_day_race_table, stop_day_total_table, by = "Day")
+stop_day_table <- stop_day_table %>%
+    spread(key = Race, value = count)
+stop_day_table
+```
+####Picture: count of person recorded in each day in a week
+Day   | Count | A    | B    | H    | O    | W
+----  |------ |------|------|------|------|------
+1     | 1692  | 116  | 653  | 221  | 159  | 543
+2     | 1665  | 149  | 543  | 182  | 166  | 625
+3     | 2344  | 189  | 645  | 231  | 236  | 1043
+4     | 2287  | 206  | 616  | 251  | 244  | 970
+5     | 1941  | 152  | 592  | 223  | 168  | 806
+6     | 2231  | 186  | 764  | 268  | 203  | 810
+7     | 2131  | 143  | 823  | 300  | 208  | 657
+
+(1) Among all the day in a week, the number of incidents happened on Sunday and Monday are much less than those happened through Tuesday and Saturday. 
+
+(2) The count of records of Asian people is much less than that of any other race of people in each day and the whole week.
+
+(3) Asian people are less liable to commit an incident on Sunday, and more liable to commit an incident on Wednesday. 
+
+(4) Black and Hispanic people are less liable to commit an incident on Monday, and more liable to commit an incident on Saturday.
+
+(5) White people are less liable to commit an incident on Sunday, and more liable to commit an incident on Tuesday and Wednesday, which is similar to Asian people.
+
+### Analysis of incidents of each hour in a day
+#### Picture: count of person recorded in each hour in a day
+```{r, echo=FALSE}
+stop_time <- stop_by %>%
+  ggvis(x = ~Hour, fill := "lightpink") %>%
+  layer_histograms(width = input_slider(1, 12, value = 1, step = 2, label = "width"))
+stop_time
+```
+Note: you can change the value of the input slider to see the number of incidents happened in specific time span of the day.
+```{r, eval = FALSE, echo=FALSE}
+stop_hour <- stop_by %>%
+  group_by(Hour) %>%
+  summarise(count = n())
+stop_hour
+```
+
+#### Table: count of person recorded in each hour in a day
+Hour  | Count | Hour | Count| Hour | Count| Hour | Count
+----  |------ |------|------|------|------|------|------
+0     | 823   | 6    | 157  | 12   | 802  | 18   | 544
+1     | 618   | 7    | 341  | 13   | 695  | 19   | 685
+2     | 489   | 8    | 489  | 14   | 515  | 20   | 834
+3     | 289   | 9    | 582  | 15   | 542  | 21   | 971
+4     | 135   | 10   | 682  | 16   | 612  | 22   | 1098
+5     | 61    | 11   | 678  | 17   | 578  | 23   | 1071
+
+(1) time span of 22:00 to 22:59 in a day has the highest incidents count, and 23:00 to 23:59 has the second highest, which means that Berkeley area is most dangerous from 10pm to 12am in a day, which corresponds to daily life experience.
+(2) From 12am to 5am, incidents count decreases gradually. A reasonable conjecture of this fact is that more and more people choose to sleep as time goes by in this time span. For the similar reason, incidents count increases gradually from 5am to 11am.
+(3) After the evening until the midnight, the incidents number increases gradually again in a day. The tally of the statistics and observation in daily life is in a good agreement.
+
+#### Picture: Probability of BPD stop for a specific age range in a specific hour
+
+```{r, echo=FALSE}
+stop_by_hourCount <- stop_by %>%
+  group_by(Hour) %>%
+  summarise(hourcount = n())
+stop_by_ageRangeCount <- stop_by %>%
+  group_by(Hour, AgeRange) %>%
+  summarise(ageCount = n())
+stop_by_percentage <- left_join(stop_by_ageRangeCount, stop_by_hourCount, by = "Hour")
+stop_by_percentage <- stop_by_percentage %>%
+  mutate(percentage = ageCount/hourcount)
+```
+
+```{r, echo=FALSE}
+stop_time_percentage2 <- ggplot(stop_by_percentage, aes(x = Hour, fill = AgeRange)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  labs(y = "Density") +
+  facet_wrap(~AgeRange)
+stop_time_percentage2
+```
+
+(1) People aged from 18 to 29 are obviously liable to commit incidents at night. The average ratio of people aged from 18 to 29 to all people stoped by the Berkeley Police Department at night is greater than 40%.
+
+(2) People aged greater than 40 are obviously liable to commit incidents in the daytime. The average ratio of people aged greater than 40 to all people stoped by the Berkeley Police Deparment during the day is greater than 40%.
+
+(3) Ratio of incidents commited by people aged between 0 and 18 and people aged from 30 to 39 fluctuates during the daytime and the night, with an average ratio of 2.5% and 25% respectively.
+
+#### Probability of BPD stop for a specific race in a specific hour
+
+```{r, echo=FALSE}
+stop_by_hourCount <- stop_by %>%
+  group_by(Hour) %>%
+  summarise(hourcount = n())
+stop_by_raceRangeCount <- stop_by %>%
+  group_by(Hour, Race) %>%
+  summarise(raceCount = n())
+stop_by_percentage1 <- left_join(stop_by_raceRangeCount, stop_by_hourCount, by = "Hour")
+stop_by_percentage1 <- stop_by_percentage1 %>%
+  mutate(percentage = raceCount/hourcount)
+```
+```{r, echo=FALSE}
+stop_time_percentage3 <- ggplot(stop_by_percentage1, aes(x = Hour, fill = Race)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  labs(y = "Density") +
+  facet_wrap(~Race)
+stop_time_percentage3
+```
+
+(1) Black people are obviously liable to commit incidents at night. The average ratio of black people to all people stoped by the Berkeley Police Department at night is about 40%.
+
+(2) White people are obviously liable to commit incidents in the daytime. The average ratio of white people to all people stoped by the Berkeley Police Deparment during the day is about 45%.
+
+(3) Ratio of incidents commited by Asian people, Hispanic people and other people fluctuate during the daytime and the night, with an average ratio of 8%, 11% and 9% respectively.
+
+
+### Analysis of prefence of Berkeley Police Department arresting people
+#### Picture: Probability of arrested by BPD of a specific race for a specific reason
+```{r,echo=FALSE}
+stop_by_reason_race <- stop_by %>%
+  group_by(Race, Reason) %>%
+  summarise(totalCount = n())
+stop_by_arrest <- stop_by %>%
+  filter(Enforcement == "A") %>%
+  group_by(Race, Reason) %>%
+  summarise(arrestCount = n())
+stop_by_percentage_race <- left_join(stop_by_reason_race, stop_by_arrest, by = c("Race", "Reason"))
+stop_by_percentage_race <- stop_by_percentage_race %>%
+  mutate(percentage = arrestCount / totalCount)
+stop_arrest <- ggplot(stop_by_percentage_race, aes(x = Race, fill = Race)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  labs(y = "Density") +
+  facet_wrap(~Reason)
+stop_arrest
+```
+
+#### Table: Probability of arrested by BPD of a specific race for a specific reason
+P   | I      | K     | R     | T     | W     |
+----|------- |-------|-------|-------|-------|
+A   | 10.34% | 75%   | 10.34%| 1.24% | 17.60%|
+B   | 8.31%  | 15.79%| 6.44% | 2.28% | 50.00%|  
+H   | 6.98%  | 16.67%| 9.09% | 2.90% | 25.00%| 
+O   | 10.14% | 18.18%| 5.80% | 0.41% | 41.67%| 
+W   | 8.14%  | 26.79%| 3.40% | 1.04% | 32.56%| 
+
+Note: in the picture and table above, I for Investigation, T for Traffic, R for Reasonable Suspicion, K for Probation/Parole, W for wanted.
+
+(1) The probability of arrested in a stop with the reason Traffic is much lower than other reasons. The average conditional probability of arrested given reason is traffic is 1.58%.
+
+(2) The probability of arrested in a stop with the reason Wanted is much higher than other reason. The average conditional probability of arrested given reason is wanted is 33.33%.
+
+(3) An interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole and race Asian is 75%, which is much higher than that of any other race. Asian people is much more liable to be arrested by Berkeley Police Department during Probation or Parole if stopped by the BPD.
+
+#### Picture: Probability of arrested by BPD of a specific age range for a specific reason
+```{r, echo=FALSE}
+stop_by_reason_age <- stop_by %>%
+  group_by(AgeRange, Reason) %>%
+  summarise(totalCount = n())
+stop_by_arrest_age <- stop_by %>%
+  filter(Enforcement == "A") %>%
+  group_by(AgeRange, Reason) %>%
+  summarise(arrestCount = n())
+stop_by_percentage_age <- left_join(stop_by_reason_age, stop_by_arrest_age, by = c("AgeRange", "Reason"))
+stop_by_percentage_age <- stop_by_percentage_age %>%
+  mutate(percentage = arrestCount / totalCount)
+
+stop_arrest_age <- ggplot(stop_by_percentage_age, aes(x = AgeRange, fill = AgeRange)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  labs(y = "Density") +
+  facet_wrap(~Reason)
+stop_arrest_age
+```
+
+#### Table: Probability of arrested by BPD of a specific age range for a specific reason
+P     | I     | K     | R     | T     | W     
+------|-------|-------|-------|-------|-------
+0-18  | 17.95%| 67.57%| 13.95%| 3.24% | 50.00%  
+18-29 | 8.45% | 12.50%| 3.87% | 1.82% | 32.35%  
+30-39 | 6.32% | 25.00%| 5.04% | 1.49% | 26.92%  
+40+   | 7.87% | 23.86%| 6.13% | 1.41% | 31.82%  
+
+(1) Similar to the conclusions above, the probability of arrested in a stop with the reason Traffic is the lowest and wanted is the highest.
+
+(2) Again similar to the conclusion above, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole and age range 0-18 is 67.56%, which is much higher than that of any other age range.
+
+(3) The conditional probability of arrested given person involved aged from 0 to 18 in a stop given any reason is more than that of given person with any other age range. Therefore, in a stop, teenagers is more liable to be arrested by Berkeley Police Department.
+
+#### Picture: Probability of arrested by BPD of a specific gender for a specific reason
+```{r, echo=FALSE}
+stop_by_reason_gender <- stop_by %>%
+  group_by(Gender, Reason) %>%
+  summarise(totalCount = n())
+stop_by_arrest_gender <- stop_by %>%
+  filter(Enforcement == "A") %>%
+  group_by(Gender, Reason) %>%
+  summarise(arrestCount = n())
+stop_by_percentage_gender <- left_join(stop_by_reason_gender, stop_by_arrest_gender, by = c("Gender", "Reason"))
+stop_by_percentage_gender <- stop_by_percentage_gender %>%
+  mutate(percentage = arrestCount / totalCount)
+
+stop_arrest_gender <- ggplot(stop_by_percentage_gender, aes(x = Gender, fill = Gender)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  labs(y = "Density") +
+  facet_wrap(~Reason)
+stop_arrest_gender
+```
+
+#### Table: Probability of arrested by BPD of a specific gender range for a specific reason
+P     | I      | K     | R     | T     | W    
+----  |------- |-------|-------|-------|-------
+F     | 9.05%  | 50.00%| 5.00% | 1.10% | 28.57%  
+M     | 8.26%  | 20.11%| 5.42% | 1.85% | 37.04%  
+
+(1) Similar to the conclusions above, the probability of arrested in a stop with the reason Traffic is the lowest and wanted is the highest.
+
+(2) Again similar to the conclusion above, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole of female is 50.00%, which is much higher than that of male, which is 20.11%.
+
