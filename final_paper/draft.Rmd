@@ -2,7 +2,7 @@
 title: "BDP draft paper"
 author: "Amy Zhu; Mengyu Li; Rebecca Reus; Shangjun Jiang"
 date: "2 August 2016"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
