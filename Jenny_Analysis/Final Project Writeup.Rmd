@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE)
       - Rebecca 
 
 ```{r}
-setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/Jenny_Analysis")
+setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/final_paper")
 ```
 
 

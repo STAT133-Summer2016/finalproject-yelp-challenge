@@ -3,7 +3,6 @@ title: "BPD_draftpaper"
 author: "Amy Zhu; Mengyu Li; Rebecca Reus; Shangjun Jiang"
 date: "2 August 2016"
 output: html_document
-runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -59,6 +58,8 @@ library(RColorBrewer)
 
 ```{r, echo=FALSE}
 # Read data
+
+############################## stop data ############################## 
 stop_by <- read_csv("cleaned_stop_data.csv")
 
 stop_by$Call.Date.Time <- mdy_hm(stop_by$Call.Date.Time)
@@ -67,7 +68,58 @@ stop_by$AgeRange <- as.factor(stop_by$AgeRange)
 stop_by <- stop_by %>%
   mutate(Hour = as.integer(hour(Call.Date.Time))) %>%
   mutate(Day = as.factor(as.integer(wday(Call.Date.Time))))
+
+############################## location data ############################## 
+mergedf <- readRDS( 'StopData_merged.rds' )
+
+## Location info:
+latmax <- max(mergedf$lat, na.rm = TRUE) 
+latmin <- min(mergedf$lat, na.rm = TRUE)
+lonmax <- max(mergedf$long, na.rm = TRUE) 
+lonmin <- min(mergedf$long, na.rm = TRUE)
+latvals <- c(latmin, latmax)
+lonvals <- c(lonmin, lonmax)
+
+## Make the variables factors:
+mergedf$CarSearch <- factor(mergedf$CarSearch)
+levels(mergedf$CarSearch) <- c("No Search", "Search")  
+
+mergedf$Race <- factor(mergedf$Race)
+levels(mergedf$Race) <- c("Asian", "Black", "Hispanic", "Other", "White")
+
+mergedf$Enforcement <- factor(mergedf$Enforcement)
+levels(mergedf$Enforcement) <- c("Arrest", "Citation", "Other", "Warning")
+
+mergedf$Reason <- factor(mergedf$Reason)
+levels(mergedf$Reason) <- c("Other", "Investigation", "Probation/Parole", "Reasonable Suscipcion", "Traffic", "Wanted")
+
+mergedf <- mergedf %>%
+  mutate(Arrest = ifelse( 
+    as.character(Enforcement) == "Arrest", 
+    "Arrested",
+    "Not Arrested") ) %>%
+  mutate(Arrest = factor(Arrest))
+
+v <- factor(mergedf$Other)
+levels(v)
+
+mergedf <- mergedf %>%
+  mutate(Emergency.Psych.Eval = ifelse( str_detect(as.character(Other), "MH"), 
+                                        yes = "Yes",
+                                        no = "No") )
+
+mergedf$Emergency.Psych.Eval <- factor(mergedf$Emergency.Psych.Eval)
+
+### BerkeleyMap 
+berkMap = map = get_map(location = c( lon = mean(lonvals), lat = mean(latvals) ), zoom = 14)
+
 ```
+
+## Population by census block group:
+
+We found the census data online and map the Berkeley population in block groups.
+![](mygraphic.png)
+
 
 ### About the Berkeley PD Stop Data
 
@@ -75,7 +127,41 @@ The Berkeley PD stop data reflects accidents that have been visited by the Berke
 
 Analysis in this part focuses on the information provided by the dispositions variable. The dispositions variable can be divided into three types. The first type only includes more than one six-character person message. Each character in each person message represents the race, gender and age range of the person, reason and enforcement of the stop, and the car search information during the stop. The second type of the dispositions includes only additional dispositions, such as P for primary cases. The third type of dispositions includes both person information and additional dispositions.
 
-For the analysis in this part, only person information for all the people in each incident and the Call Time/Date of each incident are analyzed.
+
+## MAP 1:All BPD Stops Density, 2015-2016
+```{r, fig.width=10, fig.asp=0.8, echo=FALSE}
+# a contour plot
+ggmap(berkMap) +
+  stat_density2d(aes(x = long, y = lat, fill= ..level.., alpha = .2* ..level..),
+    size = 2, bins = 5, data = mergedf, geom = "polygon") +
+  scale_fill_gradient(low = "black", high = "red") +
+    theme (panel.grid.major = element_blank (), # remove major grid
+		       panel.grid.minor = element_blank (),  # remove minor grid
+		       axis.text = element_blank (), 
+		       axis.title = element_blank (),
+	         axis.ticks = element_blank ()) + 
+  ggtitle("All BPD Stops Density, 2015-2016") +
+  labs(alpha = element_blank())+
+  guides(alpha = FALSE)
+
+```
+
+
+
+
+## MAP 2: BPD Stop Contour Map of Berkeley by Age Range
+```{r, fig.height = 8, fig.width = 10, echo=FALSE}
+ggmap(berkMap) +
+  stat_density2d( aes(x = long, y = lat, fill = ..level.., alpha = ..level..),
+    bins = I(5), geom = "polygon", data = mergedf ) +
+  scale_fill_gradient2( "Stop Density",
+    low = "white", mid = "orange", high = "red", midpoint = 25) +
+  labs(x = "Longitude", y = "Latitude") + facet_wrap(~ AgeRange) +
+  scale_alpha(range = c(.2, .55), guide = FALSE) +
+  ggtitle("BPD Stop Contour Map of Berkeley by Age Range") +
+  guides(fill = guide_colorbar(barwidth = 1.5, barheight = 10))
+```
+
 
 ### Analysis of Race
 #### Picture: count of person recorded in each race
@@ -88,39 +174,39 @@ stop_race <- stop_by %>%
 stop_race
 ```
 
-```{r, echo=FALSE, eval=FALSE}
-stop_race_total_table <- stop_by %>%
-    group_by(Race) %>%
-    summarise(totaLCount = n())
-stop_race_agerange_table <- stop_by %>%
-    group_by(Race, AgeRange) %>%
-    summarise(count = n())
-stop_race_table <- left_join(stop_race_agerange_table, stop_race_total_table, by = "Race")
-stop_race_table <- stop_race_table %>%
-    mutate(percentage = count/totaLCount) %>%
-    select(-count)
-stop_race_table <- stop_race_table %>%
-    spread(key = AgeRange, value = percentage)
-stop_race_table
-```
-
 ####Table: count of person recorded in each race
 
-Race  | Count | 0-18 | 18-29 | 30-39 | 40+
-----  |------ |------|-------|-------|-------
-A     | 1141  | 8.50%| 43.47%| 21.03%| 26.99%
-B     | 4636  | 2.29%| 34.97%| 25.09%| 37.66%
-H     | 1676  | 3.22%| 46.12%| 29.18%| 21.47%
-O     | 1384  | 2.67%| 43.28%| 29.17%| 26.87%
-W     | 5454  | 1.72%| 29.45%| 25.39%| 43.44%
+   Race     | Count | 0-18 | 18-29 | 30-39 | 40+
+----------  |------ |------|-------|-------|-------
+A (Asian)   | 1141  | 8.50%| 43.47%| 21.03%| 26.99%
+B (Black)   | 4636  | 2.29%| 34.97%| 25.09%| 37.66%
+H (Hispanic)| 1676  | 3.22%| 46.12%| 29.18%| 21.47%
+O (Other)   | 1384  | 2.67%| 43.28%| 29.17%| 26.87%
+W (White)   | 5454  | 1.72%| 29.45%| 25.39%| 43.44%
 
 #### Picture: count of person recorded of each race in each hour
+
 ```{r, echo=FALSE}
 stop_time_percentage <- ggplot(stop_by, aes(x = Hour, fill = AgeRange)) + 
   geom_bar(aes(y = ..count..)) +
   labs(y = "Count") +
-  facet_wrap(~Race)
+  facet_wrap(~Race)+
+  labs(title = "Count of person recorded of each race in each hour")
 stop_time_percentage
+```
+
+
+## MAP 3: BPD Stop Contour Map of Berkeley by Race
+```{r, fig.height = 5, fig.width = 10, echo=FALSE}
+ggmap(berkMap) +
+  stat_density2d( aes(x = long, y = lat, fill = ..level.., alpha = ..level..),
+    bins = I(5), geom = "polygon", data = mergedf ) +
+  scale_fill_gradient2( "StopDensity",
+    low = "white", mid = "orange", high = "red", midpoint = 100) +
+  labs(x = "Longitude", y = "Latitude") + facet_wrap( ~ Race ) +
+  scale_alpha(range = c(.2, .55), guide = FALSE) +
+  ggtitle("BPD Stop Contour Map of Berkeley by Race") +
+  guides(fill = guide_colorbar(barwidth = 1.5, barheight = 10))
 ```
 
 (1) Among the 14291 personnel information recorded, white people contributes the largest percentage. 38.16% of all records, namely 5454 people are white. black people contributes the second largest percentage. 32.44% of all records, namely 4636 people are black.
@@ -132,6 +218,49 @@ stop_time_percentage
 (4) Among Asian, Hispanic and other people recorded by the BPD, people aged from 18 to 29 contribute the largest percentage, which are 43.37%, 46.12% and 43.28%, respectively.
 
 (5) Black people contribute a especially high percentage of the incidents at night, while the white people contribute a especially high percentage of the incidents at the noon.
+
+### Analysis of Day
+####Picture: count of person recorded in each day in a week
+```{r, echo=FALSE}
+stop_day <- stop_by %>%
+  ggvis(x = ~Day, fill = ~Race) %>%
+  layer_bars() %>%
+  add_tooltip(function(stop_by) stop_by$Race)
+stop_day
+```
+
+```{r, eval=FALSE, echo=FALSE}
+stop_day_total_table <- stop_by %>%
+    group_by(Day) %>%
+    summarise(totaLCount = n())
+stop_day_race_table <- stop_by %>%
+    group_by(Day, Race) %>%
+    summarise(count = n())
+stop_day_table <- left_join(stop_day_race_table, stop_day_total_table, by = "Day")
+stop_day_table <- stop_day_table %>%
+    spread(key = Race, value = count)
+stop_day_table
+```
+####Picture: count of person recorded in each day in a week
+Day   | Count | A    | B    | H    | O    | W
+----  |------ |------|------|------|------|------
+1     | 1692  | 116  | 653  | 221  | 159  | 543
+2     | 1665  | 149  | 543  | 182  | 166  | 625
+3     | 2344  | 189  | 645  | 231  | 236  | 1043
+4     | 2287  | 206  | 616  | 251  | 244  | 970
+5     | 1941  | 152  | 592  | 223  | 168  | 806
+6     | 2231  | 186  | 764  | 268  | 203  | 810
+7     | 2131  | 143  | 823  | 300  | 208  | 657
+
+(1) Among all the day in a week, the number of incidents happened on Sunday and Monday are much less than those happened through Tuesday and Saturday. 
+
+(2) The count of records of Asian people is much less than that of any other race of people in each day and the whole week.
+
+(3) Asian people are less liable to commit an incident on Sunday, and more liable to commit an incident on Wednesday. 
+
+(4) Black and Hispanic people are less liable to commit an incident on Monday, and more liable to commit an incident on Saturday.
+
+(5) White people are less liable to commit an incident on Sunday, and more liable to commit an incident on Tuesday and Wednesday, which is similar to Asian people.
 
 ## Analysis of incidents of each hour in a day
 #### Picture: count of person recorded in each hour in a day
@@ -178,7 +307,6 @@ stop_by_percentage <- left_join(stop_by_ageRangeCount, stop_by_hourCount, by = "
 stop_by_percentage <- stop_by_percentage %>%
   mutate(percentage = ageCount/hourcount)
 ```
-
 
 ```{r, echo=FALSE}
 stop_time_percentage2 <- ggplot(stop_by_percentage, aes(x = Hour, fill = AgeRange)) + 
@@ -323,107 +451,8 @@ M     | 8.26%             | 20.11%              | 5.42%                   | 1.85
 (2) Again similar to the conclusion above, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole of female is 50.00%, which is much higher than that of male, which is 20.11%.
 
 
-```{r, echo=FALSE}
-## Read in the Data:
-#finaldf <- readRDS( 'StopData_finaldf.rds' )
-mergedf <- readRDS( 'StopData_merged.rds' )
-```
 
-```{r, echo=FALSE}
-## Location info:
-latmax <- max( mergedf$lat, na.rm = TRUE ) 
-latmin <- min( mergedf$lat, na.rm = TRUE )
-lonmax <- max( mergedf$long, na.rm = TRUE ) 
-lonmin <- min( mergedf$long, na.rm = TRUE )
-latvals <- c( latmin, latmax )
-lonvals <- c( lonmin, lonmax )
-```
-
-
-```{r, echo=FALSE}
-## Make the variables factors:
-mergedf$CarSearch <- factor(mergedf$CarSearch)
-levels(mergedf$CarSearch) <- c("No Search", "Search")  
-
-mergedf$Race <- factor(mergedf$Race)
-levels(mergedf$Race) <- c("Asian", "Black", "Hispanic", "Other", "White")
-
-mergedf$Enforcement <- factor(mergedf$Enforcement)
-levels(mergedf$Enforcement) <- c("Arrest", "Citation", "Other", "Warning")
-
-mergedf$Reason <- factor(mergedf$Reason)
-levels(mergedf$Reason) <- c("Other", "Investigation", "Probation/Parole", "Reasonable Suscipcion", "Traffic", "Wanted")
-
-mergedf <- mergedf %>%
-  mutate(Arrest = ifelse( 
-    as.character(Enforcement) == "Arrest", 
-    "Arrested",
-    "Not Arrested") ) %>%
-  mutate(Arrest = factor(Arrest))
-
-v <- factor(mergedf$Other)
-levels(v)
-
-mergedf <- mergedf %>%
-  mutate(Emergency.Psych.Eval = ifelse( str_detect(as.character(Other), "MH"), 
-                                        yes = "Yes",
-                                        no = "No") )
-
-mergedf$Emergency.Psych.Eval <- factor(mergedf$Emergency.Psych.Eval)
-
-berkMap = map = get_map(location = c( lon = mean(lonvals), lat = mean(latvals) ), zoom = 14)
-
-```
-
-
-## MAP 1:All BPD Stops Density, 2015-2016
-```{r, fig.width=10, fig.asp=0.8, echo=FALSE}
-# a contour plot
-ggmap(berkMap) +
-  stat_density2d(aes(x = long, y = lat, fill= ..level.., alpha = .2* ..level..),
-    size = 2, bins = 5, data = mergedf, geom = "polygon") +
-  scale_fill_gradient(low = "black", high = "red") +
-    theme (panel.grid.major = element_blank (), # remove major grid
-		       panel.grid.minor = element_blank (),  # remove minor grid
-		       axis.text = element_blank (), 
-		       axis.title = element_blank (),
-	         axis.ticks = element_blank ()) + 
-  ggtitle("All BPD Stops Density, 2015-2016") +
-  labs(alpha = element_blank())+
-  guides(alpha = FALSE)
-
-```
-
-## MAP 2: BPD Stop Contour Map of Berkeley by Race
-```{r, fig.height = 5, fig.width = 10, echo=FALSE}
-ggmap(berkMap) +
-  stat_density2d( aes(x = long, y = lat, fill = ..level.., alpha = ..level..),
-    bins = I(5), geom = "polygon", data = mergedf ) +
-  scale_fill_gradient2( "StopDensity",
-    low = "white", mid = "orange", high = "red", midpoint = 100) +
-  labs(x = "Longitude", y = "Latitude") + facet_wrap( ~ Race ) +
-  scale_alpha(range = c(.2, .55), guide = FALSE) +
-  ggtitle("BPD Stop Contour Map of Berkeley by Race") +
-  guides(fill = guide_colorbar(barwidth = 1.5, barheight = 10))
-```
-
-## MAP 3: BPD Stop Contour Map of Berkeley by Age Range
-```{r, fig.height = 8, fig.width = 10, echo=FALSE}
-ggmap(berkMap) +
-  stat_density2d( aes(x = long, y = lat, fill = ..level.., alpha = ..level..),
-    bins = I(5), geom = "polygon", data = mergedf ) +
-  scale_fill_gradient2( "Stop Density",
-    low = "white", mid = "orange", high = "red", midpoint = 25) +
-  labs(x = "Longitude", y = "Latitude") + facet_wrap(~ AgeRange) +
-  scale_alpha(range = c(.2, .55), guide = FALSE) +
-  ggtitle("BPD Stop Contour Map of Berkeley by Age Range") +
-  guides(fill = guide_colorbar(barwidth = 1.5, barheight = 10))
-```
-
-We found that the 
-
-
-
+## Conclusion
 
 
 

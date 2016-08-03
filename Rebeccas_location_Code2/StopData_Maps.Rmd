@@ -399,10 +399,9 @@ scale_fill_gradient(low = "black", high = "red")
 
 # Get Shapefiles
 ```{r}
-locationCensusFiles <- "C:/Users/Rebecca/Dropbox/School/2016_su_School/stat133/finalproject_angry_ladies/Rebeccas_location_Code2/Census_Block_Group_Polygons2010"
-blocks <- readOGR(locationCensusFiles,"Census_blockgroups_2010", verbose = TRUE)
-summary(blocks)
-print(proj4string(blocks))
+#locationCensusFiles <- "C:/Users/Rebecca/Dropbox/School/2016_su_School/stat133/finalproject_angry_ladies/Rebeccas_location_Code2/Census_Block_Group_Polygons2010"
+blocks <- readOGR("Census_Block_Group_Polygons2010","Census_blockgroups_2010", verbose = TRUE)
+
 blocks.polygons <- blocks@polygons
 blocks.data <- blocks@data
 blocks.plot.order <- blocks@plotOrder
@@ -432,6 +431,11 @@ bMap12
 # Get Shapefiles Again
 ```{r}
 locationCensusFiles <- "C:/Users/Rebecca/Dropbox/School/2016_su_School/stat133/finalproject_angry_ladies/Rebeccas_location_Code2/Census_Tract_Polygons2010"
+
+locationCensusFiles <- "Census_Tract_Polygons2010"
+blocks <- readOGR("Census_Tract_Polygons2010","Census_tracts_2010", verbose = TRUE)
+
+locationCensusFiles <- "Census_Tract_Polygons2010"
 blocks <- readOGR(locationCensusFiles,"Census_tracts_2010", verbose = TRUE)
 summary(blocks)
 print(proj4string(blocks))
@@ -455,7 +459,7 @@ bMap12
 ```{r}
 shpfile <- "Census_tracts_2010.shp"
 sh <- readShapePoly("Census_Tract_Polygons2010/Census_tracts_2010.shp")
-plot(sh)
+#plot(sh)
 sh@data$ID <- as.numeric(sh@data$ID)
 
 # Read in the demographic data and merge on Neighbourhood Id
@@ -468,6 +472,11 @@ palette(p)
 
 # Scale the total population to the palette
 pop <- sh2@data$TotalPop.x
+#str(sh2)
+#sh2[1]
+#sh2@data$TotalPop.x
+#pop <- c(2925,3144,4196,4658,3558,3387,2007,3198,3563,1992,1756,3632,3118,3844,3716,3647,3640,8368,3633,5659,2642,2794,1593,2685,1552,2020,2172,3964,4396,4885,1215,4336,4685)
+
 cols <- (pop - min(pop))/diff(range(pop))*127+1
 plot(sh, col=cols)
 #points( mergedf$long, mergedf$lat, col="black", cex=.6 )
