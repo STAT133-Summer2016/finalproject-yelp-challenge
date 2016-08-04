@@ -164,5 +164,20 @@ stop_arrest_gender
 ```
 
 
+```{r}
+stop_reason <- ggplot(stop_by, aes(x = Reason, fill = Enforcement)) + 
+   geom_bar(aes(y = ..count../sum(..count..))) + 
+   labs(y = "Density") +
+   scale_fill_brewer(palette = "Set1") +
+   facet_grid(AgeRange~Gender)
+stop_reason
+```
 
+```{r}
+stop_enforcement <- ggplot(stop_by, aes(x = Reason, fill = Enforcement)) + 
+  geom_bar(aes(y = ..count../sum(..count..))) + 
+  labs(y = "Density") +
+  facet_wrap(~Race)
+stop_enforcement
+```
 
