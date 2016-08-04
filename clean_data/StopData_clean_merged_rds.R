@@ -1,5 +1,5 @@
 # StopData_clean_merged_rds.R
-# Purpoe: This script does some minor necessary cleaning to StopData_merged.rds data that was created by the location cleaning script.
+# Purpose: This script does some minor necessary cleaning to StopData_merged.rds data that was created by the location cleaning script.
 
 library(sp)
 library(ggmap)

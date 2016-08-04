@@ -18,7 +18,7 @@ library(rgdal)
 library(rgeos)
 
 # data file names:
-data_file <- "StopData_merged2.rds" # use the cleaned version of StopData_merged.rds for plotting. See StopData_clean_merged_rds.R for more information.
+data_file <- "../../clean_data/StopData_merged2.rds" # use the cleaned version of StopData_merged.rds for plotting. See StopData_clean_merged_rds.R for more information.
 
 # read in the data to modify:
 df <- readRDS( data_file )
