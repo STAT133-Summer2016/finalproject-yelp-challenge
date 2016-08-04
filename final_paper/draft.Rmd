@@ -2,7 +2,7 @@
 title: "BDP draft paper"
 author: "Amy Zhu; Mengyu Li; Rebecca Reus; Shangjun Jiang"
 date: "2 August 2016"
-output: pdf_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -45,14 +45,15 @@ library(gridExtra)
 * [Stop Data (16,000)](https://data.cityofberkeley.info/Public-Safety/Berkeley-PD-Stop-Data/6e9j-pj9p)
 * [Arrest (200)](https://data.cityofberkeley.info/Public-Safety/Berkeley-PD-Log-Arrests/xi7q-nji6)
 * [Jail Bookings (250)](https://data.cityofberkeley.info/Public-Safety/Berkeley-PD-Log-Jail-Bookings/7ykt-c32j)
-* [Berkeley Census Data](https://data.cityofberkeley.info/)
+* [Calls for Service (4,000)](https://data.cityofberkeley.info/Public-Safety/Berkeley-PD-Calls-for-Service/k2nh-s5h5)
+* [Berkeley Census Data](https://data.cityofberkeley.info/Demographics/Census-Data-2000-And-2010/bnkq-f2ge)
 
 
- With the variety of resources and information made available by collating multiple data sets, the objective for the project was to study differences in police activity (in terms of call requests and patrols) and intensity of assessed offenses based on time, race, gender, age, and mental health. As a challenge, another project target was to create a map applet depicting the density of police activity in Berkeley with an interactive component allowing the visitor to input an address and observe their proximity and observe the types of incidences that occurred most commonly in the area. 
+With the variety of resources and information made available by collating multiple data sets, the objective for the project was to study differences in police activity (in terms of call requests and patrols) and intensity of assessed offenses based on time, race, gender, age, and mental health. As a challenge, another project target was to create a map applet depicting the density of police activity in Berkeley with an interactive component allowing the visitor to input an address and observe their proximity and observe the types of incidences that occurred most commonly in the area. 
 
-	For the stop data, there were 16,255 incidents assessed by the Berkeley police. In each case, the call date and time, location, incident type, and disposition(s) were recorded. The cases typically had a six character disposition, with each character conveying race, gender, age, reason, enforcement, and car search,  respectively, for each subject involved in the incident, although there were additional dispositions, ranging from one to three characters,  that could be input and conveyed other information. In order to prepare the data for exploration, the cleaning process included changing the call date and time to the lubridate format, transforming the addresses into longitude and latitude referencing Google Maps, and separating the information on dispositions into separate row entries for each individual assessed in a case and splitting it further by isolating “other” and six character dispositions into different columns.
+For the stop data, there were 16,255 incidents assessed by the Berkeley police. In each case, the call date and time, location, incident type, and disposition(s) were recorded. The cases typically had a six character disposition, with each character conveying race, gender, age, reason, enforcement, and car search,  respectively, for each subject involved in the incident, although there were additional dispositions, ranging from one to three characters,  that could be input and conveyed other information. In order to prepare the data for exploration, the cleaning process included changing the call date and time to the lubridate format, transforming the addresses into longitude and latitude referencing Google Maps, and separating the information on dispositions into separate row entries for each individual assessed in a case and splitting it further by isolating “other” and six character dispositions into different columns.
 
-	The data for arrests (205), and jail bookings (223) contained similar information on case/arrest/booking number, date and time, type, and subject information (name, race, sex, D.O.B., age, height, weight, hair, eyes, and occupation) and statute information (type, description, agency, and disposition). Cleaning required the dates and times to be put into lubridate format, for the two data sets to be compiled in a reasonable, and for other needed adjustments. The same code created for the stop data would be used again to convert address information to longitudinal and latitudinal coordinates. 
+The data for arrests (205), and jail bookings (223) contained similar information on case/arrest/booking number, date and time, type, and subject information (name, race, sex, D.O.B., age, height, weight, hair, eyes, and occupation) and statute information (type, description, agency, and disposition). Cleaning required the dates and times to be put into lubridate format, for the two data sets to be compiled in a reasonable, and for other needed adjustments. The same code created for the stop data would be used again to convert address information to longitudinal and latitudinal coordinates. 
 
 
 ## Data Analysis
@@ -69,6 +70,35 @@ stop_by$AgeRange <- as.factor(stop_by$AgeRange)
 stop_by <- stop_by %>%
   mutate(Hour = as.integer(hour(Call.Date.Time))) %>%
   mutate(Day = as.factor(as.integer(wday(Call.Date.Time))))
+
+stop_by$Race<- stop_by$Race %>% 
+  str_replace("A", "Asian") %>% 
+  str_replace("B", "Black") %>% 
+  str_replace("H", "Hispanic") %>% 
+  str_replace("O", "Other") %>% 
+  str_replace("W", "White")
+
+stop_by$Gender<- stop_by$Gender %>% 
+  str_replace("F", "Female") %>% 
+  str_replace("M", "Male") 
+
+stop_by$Reason <- stop_by$Reason %>% 
+  str_replace("I", "Investigation") %>% 
+  str_replace("T", "Traffic") %>% 
+  str_replace("R", "Reasonable Suspicion") %>% 
+  str_replace("R", "Probation/ Parole") %>% 
+  str_replace("W", "Wanted")
+
+stop_by$Enforcement <- stop_by$Enforcement %>% 
+  str_replace("A", "Arrest") %>% 
+  str_replace("C", "Citation") %>% 
+  str_replace("O", "Other") %>% 
+  str_replace("W", "Warning")
+
+stop_by$CarSearch <- stop_by$CarSearch %>% 
+  str_replace("S", "Search") %>% 
+  str_replace("N", "No Search")
+
 
 ############################## location data ############################## 
 mergedf <- readRDS( 'StopData_merged.rds' )
@@ -102,7 +132,6 @@ mergedf <- mergedf %>%
   mutate(Arrest = factor(Arrest))
 
 v <- factor(mergedf$Other)
-levels(v)
 
 mergedf <- mergedf %>%
   mutate(Emergency.Psych.Eval = ifelse( str_detect(as.character(Other), "MH"), 
@@ -112,7 +141,7 @@ mergedf <- mergedf %>%
 mergedf$Emergency.Psych.Eval <- factor(mergedf$Emergency.Psych.Eval)
 
 ### BerkeleyMap 
-berkMap = map = get_map(location = c( lon = mean(lonvals), lat = mean(latvals) ), zoom = 14)
+berkMap = map = get_map(location = c(lon = mean(lonvals), lat = mean(latvals)), zoom = 14)
 
 
 ############################## census data ############################## 
@@ -351,7 +380,10 @@ p1 <- ggplot(na.omit(arrest))+
 p2 <- ggplot(na.omit(jail))+
   geom_bar(aes(x=Age,
                fill = Race))+
-  facet_wrap(~Race)
+  facet_wrap(~Race)+
+ labs(x= "Age",
+       y = "Number of people",
+       title = "Jail Data") 
 
 multiplot(p1, p2,cols=2)
 

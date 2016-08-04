@@ -111,6 +111,123 @@ ggmap(berkMap) +
 ```
 
 
+```{r}
+
+############################## stop data ############################## 
+stop_by <- read_csv("cleaned_stop_data.csv")
+
+stop_by$Call.Date.Time <- mdy_hm(stop_by$Call.Date.Time)
+stop_by$AgeRange <- as.factor(stop_by$AgeRange)
+
+stop_by <- stop_by %>%
+  mutate(Hour = as.integer(hour(Call.Date.Time))) %>%
+  mutate(Day = as.factor(as.integer(wday(Call.Date.Time))))
+
+stop_by$Race<- stop_by$Race %>% 
+  str_replace("A", "Asian") %>% 
+  str_replace("B", "Black") %>% 
+  str_replace("H", "Hispanic") %>% 
+  str_replace("O", "Other") %>% 
+  str_replace("W", "White")
+
+stop_by$Gender<- stop_by$Gender %>% 
+  str_replace("F", "Female") %>% 
+  str_replace("M", "Male") 
+
+stop_by$Reason <- stop_by$Reason %>% 
+  str_replace("I", "Investigation") %>% 
+  str_replace("T", "Traffic") %>% 
+  str_replace("R", "Reasonable Suspicion") %>% 
+  str_replace("R", "Probation/ Parole") %>% 
+  str_replace("W", "Wanted")
+
+stop_by$Enforcement <- stop_by$Enforcement %>% 
+  str_replace("A", "Arrest") %>% 
+  str_replace("C", "Citation") %>% 
+  str_replace("O", "Other") %>% 
+  str_replace("W", "Warning")
+
+stop_by$CarSearch <- stop_by$CarSearch %>% 
+  str_replace("S", "Search") %>% 
+  str_replace("N", "No Search")
+
+write.csv(stop_by, "stop_data_jenny.csv", row.names = F)
+
+```
+
+
+```{r}
+p1 <- ggplot(stop_by)+
+  geom_bar(aes(x=Race),
+           fill = c("#FFCC00","#000000","#330099","#66FFCC","#FFFFFF"))+
+  labs(title = "Stop data by race",
+       x = "Race",
+       y = "Counts")
+
+p2 <- ggplot(race)+
+  geom_bar(aes(x=Description, 
+               y=Counts),
+           stat = "identity", 
+           fill = c("#FFCC00","#000000","#330099","#66FFCC","#FFFFFF"))+
+  labs(title = "Demographic race data",
+       x = "Race",
+       y = "Counts")
+
+multiplot(p1, p2,cols=2)
+
+## asian #FFCC00
+## black: #000000
+## hispanic: #330099
+## other: #66FFCC
+## white: #FFFFFF
+
+c("#FFCC00","#000000","#330099","#66FFCC","#FFFFFF")
+
+```
+
+
+
+
+
+
+```{r}
+stop_by
+m <- subset(stop_by, Hour = "7") %>% 
+  group_by(Race) %>% 
+  tally() %>% 
+  arrange(desc(n))
+
+rrr <- subset(stop_by, Hour = "7") %>% 
+  group_by(Race) %>% 
+  tally() 
+rrr$Race<-as.factor(rrr$Race)
+
+ggplot(rrr)+
+  geom_bar(aes(x=Race, y = n),
+           stat = "identity",
+           fill = c("#FFCC00","#000000","#330099","#66FFCC","#FFFFFF"))
+
+rrr <- subset(stop_by, Hour = "7") %>% 
+  group_by(Race) %>% 
+  tally() 
+
+
+
+
+           fill = c("red", "yellow", "white", "blue"))
+           fill = c("#FFCC00","#000000","#330099","#66FFCC","#FFFFFF"))
+
+m[sort(m$n, decreasing=T),]
+m
+m[order(-m[,3],m[,1]),]
+
+arrange(m,desc(n))
+
+```
+
+
+
+
 
 
 

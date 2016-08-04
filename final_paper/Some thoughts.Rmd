@@ -1,0 +1,285 @@
+---
+title: "Some ideas"
+author: "Shangjun Jiang"
+date: "4 August 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(sp)
+library(ggmap)
+library(tidyr)
+library(plyr)
+library(dplyr)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(readr)
+library(data.table)
+library(rworldmap)
+library(maps)
+library(mapdata)
+library(maptools)
+library(scales)
+library(RgoogleMaps)
+library(tmap)
+library(sp)
+library(rgdal)
+library(rgeos)
+library(RColorBrewer)
+setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/final_paper")
+```
+
+
+## Data Loading
+
+```{r, echo=FALSE}
+# Read data
+
+############################## stop data ############################## 
+stop_by <- read_csv("cleaned_stop_data.csv")
+
+stop_by$Call.Date.Time <- mdy_hm(stop_by$Call.Date.Time)
+stop_by$AgeRange <- as.factor(stop_by$AgeRange)
+
+stop_by <- stop_by %>%
+  mutate(Hour = as.integer(hour(Call.Date.Time))) %>%
+  mutate(Day = as.factor(as.integer(wday(Call.Date.Time))))
+
+stop_by$Race<- stop_by$Race %>% 
+  str_replace("A", "Asian") %>% 
+  str_replace("B", "Black") %>% 
+  str_replace("H", "Hispanic") %>% 
+  str_replace("O", "Other") %>% 
+  str_replace("W", "White")
+
+stop_by$Gender<- stop_by$Gender %>% 
+  str_replace("F", "Female") %>% 
+  str_replace("M", "Male") 
+
+stop_by$Reason <- stop_by$Reason %>% 
+  str_replace("I", "Investigation") %>% 
+  str_replace("T", "Traffic") %>% 
+  str_replace("R", "Reasonable Suspicion") %>% 
+  str_replace("R", "Probation/ Parole") %>% 
+  str_replace("W", "Wanted")
+
+stop_by$Enforcement <- stop_by$Enforcement %>% 
+  str_replace("A", "Arrest") %>% 
+  str_replace("C", "Citation") %>% 
+  str_replace("O", "Other") %>% 
+  str_replace("W", "Warning")
+
+stop_by$CarSearch <- stop_by$CarSearch %>% 
+  str_replace("S", "Search") %>% 
+  str_replace("N", "No Search")
+
+############################## location data ############################## 
+mergedf <- readRDS( 'StopData_merged.rds' )
+
+## Location info:
+latmax <- max(mergedf$lat, na.rm = TRUE) 
+latmin <- min(mergedf$lat, na.rm = TRUE)
+lonmax <- max(mergedf$long, na.rm = TRUE) 
+lonmin <- min(mergedf$long, na.rm = TRUE)
+latvals <- c(latmin, latmax)
+lonvals <- c(lonmin, lonmax)
+
+## Make the variables factors:
+mergedf$CarSearch <- factor(mergedf$CarSearch)
+levels(mergedf$CarSearch) <- c("No Search", "Search")  
+
+mergedf$Race <- factor(mergedf$Race)
+levels(mergedf$Race) <- c("Asian", "Black", "Hispanic", "Other", "White")
+
+mergedf$Enforcement <- factor(mergedf$Enforcement)
+levels(mergedf$Enforcement) <- c("Arrest", "Citation", "Other", "Warning")
+
+mergedf$Reason <- factor(mergedf$Reason)
+levels(mergedf$Reason) <- c("Other", "Investigation", "Probation/Parole", "Reasonable Suscipcion", "Traffic", "Wanted")
+
+mergedf <- mergedf %>%
+  mutate(Arrest = ifelse( 
+    as.character(Enforcement) == "Arrest", 
+    "Arrested",
+    "Not Arrested") ) %>%
+  mutate(Arrest = factor(Arrest))
+
+v <- factor(mergedf$Other)
+
+mergedf <- mergedf %>%
+  mutate(Emergency.Psych.Eval = ifelse( str_detect(as.character(Other), "MH"), 
+                                        yes = "Yes",
+                                        no = "No") )
+
+mergedf$Emergency.Psych.Eval <- factor(mergedf$Emergency.Psych.Eval)
+
+### BerkeleyMap 
+berkMap = map = get_map(location = c(lon = mean(lonvals), lat = mean(latvals)), zoom = 14)
+
+
+############################## census data Rebecca ############################## 
+
+blocks <- readOGR("Census_Tract_Polygons2010","Census_tracts_2010", verbose = TRUE)
+
+locationCensusFiles <- "Census_Tract_Polygons2010"
+blocks <- readOGR(locationCensusFiles,"Census_tracts_2010", verbose = TRUE)
+b2 <- spTransform(blocks, CRS("+proj=longlat +datum=WGS84"))
+b3 <- fortify(b2)
+
+############################## census data JENNY ############################## 
+census <- read.csv("Census_Data_2000_And_2010.csv")
+census2010<- census[census$Year==2010,]
+
+racecensus2010 <- census2010[census2010$Heading=="Not Hispanic or Latino"|census2010$Heading=="HISPANIC OR LATINO AND RACE",]
+sexcensus2010 <- census2010[census2010$Heading=="Sex",]
+agecensus2010 <- census2010[census2010$Heading=="Age",]
+
+
+race <- select(racecensus2010, Description, Amount) 
+race$Description <- race$Description %>% 
+  str_replace_all("Hispanic or Latino.*", "Hispanic") %>% 
+  str_replace("Black or African American", "Black") %>% 
+  str_replace("American Indian and Alaska Native", "Other") %>% 
+  str_replace("Native Hawaiian and Other Pacific Islander", "Other") %>% 
+  str_replace("Some other race", "Other") %>% 
+  str_replace("Two or more races", "Other")
+
+race <- race[race$Description !="Not Hispanic",]
+
+race <- race %>% 
+  group_by(Description) %>% 
+  tally(Amount)
+
+names(race) <- c("Description", "Counts")  
+
+sex <- select(sexcensus2010, Description, Amount) 
+
+age <- select(agecensus2010, Description, Amount) 
+age <- age[age$Description != "Median age",]
+age$Description <- c("0-18", "0-18", "18-64", "65+")
+
+age<- age %>% 
+  group_by(Description) %>% 
+  tally(Amount)
+names(age) <- c("Description", "Counts")  
+
+############################## arrest data ############################## 
+arrest <- read.csv("Berkeley_PD_Log_-_Arrests.csv")
+
+############################## jail data ############################## 
+jail <- read.csv("Berkeley_PD_Log_-_Jail_Bookings.csv")
+
+
+############################## call for service data ############################## 
+
+callservice<- read.csv("Berkeley_PD_-_Calls_for_Service.csv") 
+
+callservice<- callservice %>% 
+  mutate(latlong= 
+           str_replace_all(callservice$Block_Location,"[0-9]* [A-Za-z]*", "") %>%
+           str_replace_all("\nBerkeley,\n", "") %>% 
+           str_replace("[A-Za-z]*", "") %>% 
+           str_replace(";","") %>% 
+           str_replace("&","") %>% 
+           str_replace("[A-Za-z]*", "")) 
+
+callservice$latlong<- str_replace(callservice$latlong, "\\(", "") %>% 
+                    str_replace("\\)", "") 
+
+callservice<- callservice %>% 
+  separate(latlong, c("lat", "long"), sep=",")
+
+callservice$lat <- as.numeric(callservice$lat)
+callservice$long <- as.numeric(callservice$long)
+
+
+
+
+############################## multiplot function ############################## 
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+
+
+
+```
+
+
+## PART I: Racial Discrimination??
+
+```{r}
+p1 <- ggplot(stop_by)+
+  geom_bar(aes(x=Race),
+           fill = c("#FFCC00","#000000","#330099","#66FFCC","#FFFFFF"))+
+  labs(title = "Stop data by race",
+       x = "Race",
+       y = "Counts")
+
+p2 <- ggplot(race)+
+  geom_bar(aes(x=Description, 
+               y=Counts),
+           stat = "identity", 
+           fill = c("#FFCC00","#000000","#330099","#66FFCC","#FFFFFF"))+
+  labs(title = "Demographic race data",
+       x = "Race",
+       y = "Counts")
+
+multiplot(p1, p2,cols=2)
+
+```
+
+#### arrest + jail data 
+
+
+## PART II: time of being stopped 
+
+#### by race
+#### by age 
+
+
+#### location of being stopped
+#### census data + stop data map + call for service map 
+
+
+
+## PART IV: Exploration
+#### pick location + time
+#### time you top 3 stop reasons + top 2 race + top 2 age groups
+
+
+
