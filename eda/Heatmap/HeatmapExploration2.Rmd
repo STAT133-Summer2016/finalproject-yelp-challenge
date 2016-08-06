@@ -6,10 +6,10 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
 ```
 
-```{r}
+```{r, include = FALSE, echo = FALSE}
 library(sp)
 library(ggmap)
 library(tidyr)
@@ -28,7 +28,7 @@ library(RColorBrewer) # creates nice color schemes
 library(classInt)     # finds class intervals for continuous variables
 library(gdata)
 library(XLConnect)
-library(data.table)
+#library(data.table)
 ```
 
 ### Set data file names:
@@ -40,6 +40,8 @@ census_tract_shp <- "Census_tracts_2010"
 census_tract_csv <- "../../raw_data/Census_tracts_2010.csv"
 alameda_xls <- "../../raw_data/2010_Pop_Block_County.xls"
 alameda_tract_nums_xls <- "../../raw_data/census_tract_numbers.xls"
+alameda_clean_csv <- "../../raw_data/alameda_clean_census.csv"
+berkeley_clean_csv <- "../../clean_data/berkeley_census_clean.csv"
 
 ```
 
@@ -47,11 +49,18 @@ alameda_tract_nums_xls <- "../../raw_data/census_tract_numbers.xls"
 ```{r}
 # read in the data to modify:
 df <- readRDS( data_file )
+berkpop <- read.csv2(berkeley_clean_csv)
+berkpop <- berkpop[,-1]
+a3 <- read.csv2(alameda_clean_csv)
+a3 <- a3[,-1]
+```
+
+```{r, eval = F, include = F}
+# Used to clean the alameda data, do not run.
 wb <- loadWorkbook(alameda_xls)
 alameda <- readWorksheet(wb, sheet=1,startRow = 5) 
 ```
 
-### Get some location info from the data:
 ```{r}
 # Location info (to set lim values for coordinates):
 latmax <- max( df$lat, na.rm = TRUE )
@@ -63,48 +72,42 @@ lonvals <- c( lonmin, lonmax )
 ```
 
 ### Get the regular Berkeley map:
-```{r}
+```{r,include = F, echo = FALSE}
+# get rid of the axes:
+ditch_the_axes <- theme(
+  axis.text = element_blank(),
+  axis.line = element_blank(),
+  axis.ticks = element_blank(),
+  panel.border = element_blank(),
+  panel.grid = element_blank(),
+  axis.title = element_blank()
+  )
+```
+```{r,include = F, echo = FALSE}
 # get the plain Berkeley map from Google:
-berkMap = map = get_map(location = c( lon = mean(lonvals), lat = mean(latvals) ), zoom = 12)
+berkMap = map = get_map(location = c( lon = mean(lonvals), lat = mean(latvals) ), zoom = 12) 
 ```
 
-### Draw the regular Berkeley Map:
 ```{r}
-ggmap(berkMap)
+berkgg <-ggmap(berkMap) +
+  xlim(-122.335, lonmax) + ylim(latvals) +
+  ditch_the_axes 
+berkgg
 ```
-
 
 ### Get the census shape files:
-```{r}
-##locationCensusFiles <- "C:/Users/Rebecca/Dropbox/School/2016_su_School/stat133/finalproject_angry_ladies/Rebeccas_location_Code2/Census_Block_Group_Polygons2010"
-#blocks <- readOGR("Census_Block_Group_Polygons2010","Census_blockgroups_2010", verbose = TRUE)
+```{r, include=FALSE, echo = FALSE}
+
 census <- readOGR(census_tract_folder,census_tract_shp, verbose = TRUE)
 
-# blocks.polygons <- blocks@polygons
-# blocks.data <- blocks@data
-# blocks.plot.order <- blocks@plotOrder
 censusT <- spTransform(census, CRS("+proj=longlat +datum=WGS84"))
 censusT@data$ID <- as.numeric(censusT@data$ID)
-censusTfortified <- fortify(censusT)
-#census4 <- census2@data
-#pop <- census4$TotalPop
-# census3 <- census3 %>%
-#   mutate(id = as.factor(id))
-# popdf <- as.vector(data.frame(id = as.character(unique(census3$id)), pop = as.character(pop), stringsAsFactors = FALSE, mode = "list" ))
-# census5 <- merge(census3, popdf, by = id)
 
 censusCSV <- read.csv(file=census_tract_csv, header = TRUE)
-
-#census3 <- fortify(census2)
-censusTmergedCSV <- merge(censusT, censusCSV, by='ID')
-
-
-# census4$id <- 0:32
-# census5 <- merge(census3, census4, by='id')
 ```
 
 ### Trying some things:
-```{r}
+```{r, eval = F, include = F}
 # library(rgdal)     # R wrapper around GDAL/OGR
 # library(ggplot2)   # for general plotting
 # library(ggmaps)    # for fortifying shapefiles
@@ -120,15 +123,14 @@ shapefile_df <- fortify(censusT)
 
 ```
 
-```{r}
+```{r, eval = F, include = F}
 ggmap(berkMap) +
 geom_path(data = shapefile_df, 
           aes(x = long, y = lat, group = group),
           color = 'black', size = .2) 
 ```
 
-
-```{r}
+```{r, eval = F, include = F}
 ggmap(berkMap) +
 geom_polygon(data = shapefile_df, 
           aes(x = long, y = lat, group = group),
@@ -136,22 +138,11 @@ geom_polygon(data = shapefile_df,
 ```
 
 
-### Ditch the axes theme:
-```{r}
-ditch_the_axes <- theme(
-  axis.text = element_blank(),
-  axis.line = element_blank(),
-  axis.ticks = element_blank(),
-  panel.border = element_blank(),
-  panel.grid = element_blank(),
-  axis.title = element_blank()
-  )
-```
 
-### WORKs:
+### Examine total population by census block:
 ```{r}
 # READ IN DATA RIGHT!!!
-census.df <- fortify(census2, region = 'GEOID10')
+census.df <- fortify(censusT, region = 'GEOID10')
 pop <- read.csv(file=census_tract_csv, header = TRUE)
 names(pop)[13] <- "id"
 pop <- pop %>%
@@ -166,27 +157,26 @@ popdenmap <- ggmap(berkMap) +
 popdenmap
 ```
 
-```{r}
+```{r, eval = F, include = F}
 popdenmap <- popdenmap + theme_bw()
 ```
 
-
-```{r}
+```{r, eval = F, include = F}
 popdenmap  +
   coord_fixed(1.3) 
 ```
 
-```{r}
+```{r, eval = F, include = F}
 popdenmap <- popdenmap +
   ditch_the_axes 
 popdenmap
 ```
 
-```{r}
+```{r, eval = F, include = F}
 popdenmap + scale_fill_gradient(trans = "log10")
 ```
 
-```{r}
+```{r, eval = F, include = F}
 popamts <- censusCSV$TotalPop
 popmin <- min(popamts)
 popmin
@@ -197,25 +187,21 @@ popmax
 
 popints <- (popamts - min(popamts))/diff(range(popamts)) # recorts the percentage difference from the minimum population
 
-popints_df 
-
-
+#popints_df 
 ```
 
-```{r}
-pd2 <- elbow_room1 + 
+```{r, eval = F, include = F}
+pd2 <- popdenmap + 
     scale_fill_gradientn(colours = rev(rainbow(7)),
                          breaks = c(2, 4, 10, 100, 1000, 10000),
                          trans = "log10") 
 pd2
 ```
 
-
-
 ### All BPD Stops Density, 2015-2016
 ```{r}
 # a contour plot
-ggmap(berkMap) +
+berkgg +
   stat_density2d(aes(x = long, y = lat, fill= ..level.., alpha = .2* ..level..),
                  size = 2, bins = 5, data = df, geom = "polygon") +
   scale_fill_gradient(low = "black", high = "red") +
@@ -229,18 +215,18 @@ ggmap(berkMap) +
 ```
 
 ### Works, but no google maps:
-```{r}
+```{r, eval = F, include = F}
 ### Read in .shp file only for Census:
 shpfile <- str_c(census_tract_folder, "/", census_tract_shp, ".shp")
 sh <- readShapePoly(shpfile)
 ```
 
-```{r}
+```{r, eval = F, include = F}
 ### Plot the census shape file (polygon outline only)
 plot(sh)
 ```
 
-```{r}
+```{r, eval = F, include = F}
 ### Modify the shape file to plot the population info:
 sh@data$ID <- as.numeric(sh@data$ID)
 
@@ -259,65 +245,131 @@ popamts <- sh2@data$TotalPop.x
 cols <- (popamts - min(popamts))/diff(range(popamts))*127+1
 ```
 
-```{r}
+```{r, eval = F, include = F}
 ### Plot the census shape data with colors for population:
 plot(sh, col=cols)
 ```
 
-### Dealing with population info:
-```{r}
+### Cleaning the Berkeley population info (do not run):
+```{r, eval = F, include = F}
 #write.csv(alameda, file = "alameda_population_by_tract.csv")
-alameda = alameda[-1,]
-rownames(alameda) <- 1:nrow(alameda)
-names(alameda)[1] <- "GEO"
-
-alameda2 <- alameda %>%
-  separate(GEO, c("Block","Group", "Tract", "County", "State"), ", ")
-
-names(alameda2)[3] <- "NAME10"
-
-alameda2 <- alameda2 %>%
-  mutate(NAME10 = str_replace(NAME10, "Census Tract ", ""))
-
-alameda2 <- alameda2 %>%
-  select(-Block,-Group,-County,-State) 
-
-a3 <- alameda2 %>%
-        group_by(NAME10)%>% 
-        summarise(Total.population = sum(Total.population),
-                  Hispanic.or.Latino = sum(Hispanic.or.Latino),
-                  Total.population..not.Hispanic.or.Latino = sum(Total.population..not.Hispanic.or.Latino),
-                  One.race.total = sum(One.race.total),
-                  White = sum(White),
-                  American.Indian.and.Alaska.Native = sum(American.Indian.and.Alaska.Native),
-                  Asian = sum(Asian),
-                  Native.Hawaiian.and.Other.Pacific.Islander = sum(Native.Hawaiian.and.Other.Pacific.Islander),
-                  Some.Other.Race = sum(Some.Other.Race),
-                  Two.or.More.Races = sum(Two.or.More.Races))
+# alameda = alameda[-1,]
+# rownames(alameda) <- 1:nrow(alameda)
+# names(alameda)[1] <- "GEO"
+# 
+# alameda2 <- alameda %>%
+#   separate(GEO, c("Block","Group", "Tract", "County", "State"), ", ")
+# 
+# names(alameda2)[3] <- "NAME10"
+# 
+# alameda2 <- alameda2 %>%
+#   mutate(NAME10 = str_replace(NAME10, "Census Tract ", ""))
+# 
+# alameda2 <- alameda2 %>%
+#   select(-Block,-Group,-County,-State) 
+# 
+# a3 <- alameda2 %>%
+#         group_by(NAME10)%>% 
+#         summarise(Total.population = sum(Total.population),
+#                   Hispanic.or.Latino = sum(Hispanic.or.Latino),
+#                   Total.population..not.Hispanic.or.Latino = sum(Total.population..not.Hispanic.or.Latino),
+#                   One.race.total = sum(One.race.total),
+#                   White = sum(White),
+#                   Black.or.African.American = sum(Black.or.African.American),
+#                   American.Indian.and.Alaska.Native = sum(American.Indian.and.Alaska.Native),
+#                   Asian = sum(Asian),
+#                   Native.Hawaiian.and.Other.Pacific.Islander = sum(Native.Hawaiian.and.Other.Pacific.Islander),
+#                   Some.Other.Race = sum(Some.Other.Race),
+#                   Two.or.More.Races = sum(Two.or.More.Races))
 
 
 #census_alameda <- left_join(censusCSV, a3, by = "NAMELSAD10")
 ```
 
-```{r}
-# READ IN DATA RIGHT!!!
-census.df <- fortify(census2, region = 'NAME10')
-pop <- censusCSV
-pop <- pop %>%
-  select(NAME10, TotalPop) %>%
-  mutate(NAME10 = as.character(NAME10))
+```{r, eval = F, include = F}
+# cleaning the berkeley population data, do not run me:
 
-names(a3)[1] <- "id"
-names(pop)[1] <- "id"
-
-pop <- left_join(pop, a3, by = "id")
-census.df <- left_join(census.df, pop, by = "id")
-write.csv2(a3,"alameda_clean_census.csv")
-write.csv2(pop, "berkeley_census_clean.csv")
+# census.df <- fortify(censusT, region = 'NAME10')
+# pop <- censusCSV
+# pop <- pop %>%
+#   select(NAME10, TotalPop) %>%
+#   mutate(NAME10 = as.character(NAME10))
+# 
+# names(a3)[1] <- "id"
+# names(pop)[1] <- "id"
+# 
+# pop <- left_join(pop, a3, by = "id")
+# census.df <- left_join(census.df, pop, by = "id")
+#write.csv2(a3,"alameda_clean_census.csv")
+#write.csv2(pop, "berkeley_census_clean.csv")
 ```
 
-```{r}
-popdenmap <- ggmap(berkMap) + 
-  geom_polygon(data = census.df, aes(x = long, y = lat, group = group, fill = TotalPop), color = "white", alpha = .7) 
-popdenmap
+```{r, include = F, echo = F}
+bpop2 <- berkpop %>%
+  select(-Total.population..not.Hispanic.or.Latino) %>%
+   select(-Two.or.More.Races) %>%
+  select(-One.race.total)
+
+bpop2$Other = bpop2$American.Indian.and.Alaska.Native +
+                  bpop2$Native.Hawaiian.and.Other.Pacific.Islander +
+                  bpop2$Some.Other.Race
+
+bpop2 <- bpop2 %>%
+  mutate(Percent.Black = Black.or.African.American/Total.population) %>%
+  mutate(Percent.Other = Other/Total.population) %>%
+  mutate(Percent.White = White/Total.population) %>%
+  mutate(Percent.Asian = Asian/Total.population) %>%
+  mutate(Percent.Hispanic = Hispanic.or.Latino/Total.population) %>%
+  mutate(Percent.Berkeley = Total.population/sum(Total.population)) %>%
+  select(-TotalPop) %>%
+  mutate(Relative.Per.Black = Black.or.African.American/sum(Black.or.African.American)) %>%
+  mutate(Relative.Per.Other = Other/sum(Other)) %>%
+  mutate(Relative.Per.White = White/sum(White)) %>%
+  mutate(Realtive.Per.Asian = Asian/sum(Asian)) %>%
+  mutate(Relative.Per.Hispanic = Hispanic.or.Latino/sum(Hispanic.or.Latino)) %>%
+  select(-American.Indian.and.Alaska.Native,-Native.Hawaiian.and.Other.Pacific.Islander, -Some.Other.Race)
+
 ```
+
+```{r, include = FALSE, echo = FALSE}
+# read in the data:
+census.df <- fortify(censusT, region = 'NAME10')
+census.df <- left_join(census.df, bpop2, by = "id")
+```
+
+Population by Race:
+```{r}
+p <- colorRampPalette(c("white", "red"))(128)
+palette(p)
+
+# Scale the total population to the palette
+#popamts <- sh2@data$TotalPop.x
+
+# create the colors:
+# cols <- (popamts - min(popamts))/diff(range(popamts))*127+1
+
+black1 <- berkgg + 
+  geom_polygon(data = census.df, aes(x = long, y = lat, group = group, fill = Black.or.African.American), color = "white", alpha = .5)  +
+  ggtitle("Black Population") + 
+  scale_fill_gradientn(trans = "log10", colors = p) +
+  labs(fill = "Population\nLog Scale")
+black1
+
+# +
+#   labs(fill = element_blank())+
+#   guides(fill = FALSE)
+
+black2 <- berkgg + 
+  geom_polygon(data = census.df, aes(x = long, y = lat, group = group, fill = Percent.Black), color = "white", alpha = .7) +
+  ggtitle("Percent Black") +
+  scale_fill_gradientn(trans = "log10", colors = p) +
+  labs(fill = "Population\nDensity\nLog Scale")
+black2
+```
+
+View side by side:
+```{r}
+require(gridExtra)
+grid.arrange(black1, black2, ncol=2)
+```
+
