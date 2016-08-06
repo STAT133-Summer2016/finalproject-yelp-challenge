@@ -10,12 +10,8 @@ shinyUI(fluidPage(
   sidebarLayout(
     
     # Sidebar panel
-    sidebarPanel(
-      sliderInput('hour',
-                  'HOUR: ',
-                  0, 24, value=7,
-                  animate = T)
-      ),
+      selectInput("dataset", "Choose a dataset:", 
+                  choices = c("Race", "AgeRange", "Gender")),
     
     
     # Main panel
@@ -24,5 +20,6 @@ shinyUI(fluidPage(
       )
       )
       ))
+
 
 

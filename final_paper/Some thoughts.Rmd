@@ -37,44 +37,6 @@ setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/final_paper")
 ```{r, echo=FALSE}
 # Read data
 
-############################## stop data ############################## 
-stop_by <- read_csv("cleaned_stop_data.csv")
-
-stop_by$Call.Date.Time <- mdy_hm(stop_by$Call.Date.Time)
-stop_by$AgeRange <- as.factor(stop_by$AgeRange)
-
-stop_by <- stop_by %>%
-  mutate(Hour = as.integer(hour(Call.Date.Time))) %>%
-  mutate(Day = as.factor(as.integer(wday(Call.Date.Time))))
-
-stop_by$Race<- stop_by$Race %>% 
-  str_replace("A", "Asian") %>% 
-  str_replace("B", "Black") %>% 
-  str_replace("H", "Hispanic") %>% 
-  str_replace("O", "Other") %>% 
-  str_replace("W", "White")
-
-stop_by$Gender<- stop_by$Gender %>% 
-  str_replace("F", "Female") %>% 
-  str_replace("M", "Male") 
-
-stop_by$Reason <- stop_by$Reason %>% 
-  str_replace("I", "Investigation") %>% 
-  str_replace("T", "Traffic") %>% 
-  str_replace("R", "Reasonable Suspicion") %>% 
-  str_replace("R", "Probation/ Parole") %>% 
-  str_replace("W", "Wanted")
-
-stop_by$Enforcement <- stop_by$Enforcement %>% 
-  str_replace("A", "Arrest") %>% 
-  str_replace("C", "Citation") %>% 
-  str_replace("O", "Other") %>% 
-  str_replace("W", "Warning")
-
-stop_by$CarSearch <- stop_by$CarSearch %>% 
-  str_replace("S", "Search") %>% 
-  str_replace("N", "No Search")
-
 ############################## location data ############################## 
 mergedf <- readRDS( 'StopData_merged.rds' )
 
@@ -114,6 +76,25 @@ mergedf <- mergedf %>%
                                         no = "No") )
 
 mergedf$Emergency.Psych.Eval <- factor(mergedf$Emergency.Psych.Eval)
+
+mergedf$Call.Date.Time <- mdy_hm(mergedf$Call.Date.Time)
+mergedf$AgeRange <- as.factor(mergedf$AgeRange)
+
+mergedf <- mergedf %>%
+  mutate(Hour = as.integer(hour(Call.Date.Time))) %>%
+  mutate(Day = as.factor(as.integer(wday(Call.Date.Time))))
+
+
+mergedf$Gender<- mergedf$Gender %>% 
+  str_replace("F", "Female") %>% 
+  str_replace("M", "Male") 
+
+mergedf$AgeRange<- mergedf$AgeRange %>% 
+  str_replace("1", "0-18") %>% 
+  str_replace("2", "18-29") %>% 
+  str_replace("3", "30-39") %>%  
+  str_replace("4", "40+")
+  
 
 ### BerkeleyMap 
 berkMap = map = get_map(location = c(lon = mean(lonvals), lat = mean(latvals)), zoom = 14)
@@ -242,28 +223,61 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 
 ## PART I: Racial Discrimination??
 
+```{r, fig.height = 5, fig.width = 10, echo = FALSE}
+
+
+m <- stop_by %>% 
+  group_by(Race) %>% 
+  tally()
+names(m) <- c("Race", "stop")
+names(race) <- c("Race", "census")
+
+pop <- left_join(race,m,by = "Race")
+pop <- pop %>% 
+  mutate(percentage=(stop/census)) %>% 
+pop$percentage<- round(pop$percentage, digits = 2)
+
+
+ggplot(pop)+
+  geom_bar(aes(x=Race,
+               y=percentage), 
+           stat = "identity",
+           fill = c("#FFCC00","#E1B378","#5F9EA0","#66FFCC","#40b8d0"))+
+  geom_text(aes(x = Race, 
+                y = percentage, 
+                label = paste0(percentage,"%")), 
+            size=5,
+            colour= "#000000")+
+  scale_y_continuous(labels=percent, limits = c(0,1)) +
+  labs(title = "The percentage of being stopped by police (%)",
+       x = "Race",
+       y = "Percentage") +
+  theme(axis.line = element_line(size=1, colour = "black"), 
+        panel.grid.major = element_line(colour = "#d3d3d3"), panel.grid.minor = element_blank(), 
+        panel.border = element_blank(), panel.background = element_blank()) + 
+  theme(plot.title = element_text(size = 14, family = "Tahoma", face = "bold"), 
+        text=element_text(family="Tahoma"),
+        axis.text.x=element_text(colour="black", size = 10), 
+        axis.text.y=element_text(colour="black", size = 10)) 
+  
+  
+```
+
+
+
 ```{r}
-p1 <- ggplot(stop_by)+
-  geom_bar(aes(x=Race),
-           fill = c("#FFCC00","#000000","#330099","#66FFCC","#FFFFFF"))+
-  labs(title = "Stop data by race",
-       x = "Race",
-       y = "Counts")
+race %>%
+  ggvis(x = ~Description, y = ~Counts) %>%
+  layer_bars(fill = c("#FFCC00","#000000","#330099","#66FFCC","#FFFFFF")) %>%
+  add_tooltip(function(race) race$Counts) 
+  labs(title = "Counts of people recorded in every day in a week")
 
-p2 <- ggplot(race)+
-  geom_bar(aes(x=Description, 
-               y=Counts),
-           stat = "identity", 
-           fill = c("#FFCC00","#000000","#330099","#66FFCC","#FFFFFF"))+
-  labs(title = "Demographic race data",
-       x = "Race",
-       y = "Counts")
-
-multiplot(p1, p2,cols=2)
 
 ```
 
 #### arrest + jail data 
+
+
 
 
 ## PART II: time of being stopped 
