@@ -1,0 +1,450 @@
+---
+title: "Heat Map Exploration"
+author: "Rebecca Reus"
+date: "August 5, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+```
+
+```{r, include = FALSE, echo = FALSE}
+library(sp)
+library(ggmap)
+library(tidyr)
+library(dplyr)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(readr)
+library(maps)
+library(mapdata)
+library(rgdal)
+library(rgeos)
+#library(gpclib)       # loads polygon clipping library
+library(maptools)     # loads sp library too
+library(RColorBrewer) # creates nice color schemes
+library(classInt)     # finds class intervals for continuous variables
+library(gdata)
+library(XLConnect)
+#library(data.table)
+```
+
+### Set data file names:
+```{r}
+# data file names:
+data_file <- "../../clean_data/StopData_merged2.rds" # use the cleaned version of StopData_merged.rds for plotting. See StopData_clean_merged_rds.R for more information.
+census_tract_folder <- "../../raw_data/Census_Tract_Polygons2010"
+census_tract_shp <- "Census_tracts_2010"
+census_tract_csv <- "../../raw_data/Census_tracts_2010.csv"
+alameda_xls <- "../../raw_data/2010_Pop_Block_County.xls"
+alameda_tract_nums_xls <- "../../raw_data/census_tract_numbers.xls"
+alameda_clean_csv <- "../../raw_data/alameda_clean_census.csv"
+berkeley_clean_csv <- "../../clean_data/berkeley_census_clean.csv"
+
+```
+
+### Read in the data:
+```{r}
+# read in the data to modify:
+df <- readRDS( data_file )
+berkpop <- read.csv2(berkeley_clean_csv)
+berkpop <- berkpop[,-1]
+a3 <- read.csv2(alameda_clean_csv)
+a3 <- a3[,-1]
+```
+
+```{r, eval = F, include = F}
+# Used to clean the alameda data, do not run.
+wb <- loadWorkbook(alameda_xls)
+alameda <- readWorksheet(wb, sheet=1,startRow = 5) 
+```
+
+```{r}
+# Location info (to set lim values for coordinates):
+latmax <- max( df$lat, na.rm = TRUE )
+latmin <- min( df$lat, na.rm = TRUE )
+lonmax <- max( df$long, na.rm = TRUE )
+lonmin <- min( df$long, na.rm = TRUE )
+latvals <- c( latmin, latmax )
+lonvals <- c( lonmin, lonmax )
+```
+
+### Get the regular Berkeley map:
+```{r,include = F, echo = FALSE}
+# get rid of the axes:
+ditch_the_axes <- theme(
+  axis.text = element_blank(),
+  axis.line = element_blank(),
+  axis.ticks = element_blank(),
+  panel.border = element_blank(),
+  panel.grid = element_blank(),
+  axis.title = element_blank()
+  )
+```
+```{r,include = F, echo = FALSE}
+# get the plain Berkeley map from Google:
+berkMap = map = get_map(location = c( lon = mean(lonvals), lat = mean(latvals) ), zoom = 12) 
+```
+
+```{r}
+berkgg <-ggmap(berkMap) +
+  xlim(-122.335, lonmax) + ylim(latvals) +
+  ditch_the_axes 
+berkgg
+```
+
+### Get the census shape files:
+```{r, include=FALSE, echo = FALSE}
+
+census <- readOGR(census_tract_folder,census_tract_shp, verbose = TRUE)
+
+censusT <- spTransform(census, CRS("+proj=longlat +datum=WGS84"))
+censusT@data$ID <- as.numeric(censusT@data$ID)
+
+censusCSV <- read.csv(file=census_tract_csv, header = TRUE)
+```
+
+### Trying some things:
+```{r, eval = F, include = F}
+# library(rgdal)     # R wrapper around GDAL/OGR
+# library(ggplot2)   # for general plotting
+# library(ggmaps)    # for fortifying shapefiles
+
+# First read in the shapefile, using the path to the shapefile and the shapefile name minus the
+# extension as arguments
+# Next the shapefile has to be converted to a dataframe for use in ggplot2
+shapefile_df <- fortify(censusT)
+
+# Now the shapefile can be plotted as either a geom_path or a geom_polygon.
+# Paths handle clipping better. Polygons can be filled.
+# You need the aesthetics long, lat, and group.
+
+```
+
+```{r, eval = F, include = F}
+ggmap(berkMap) +
+geom_path(data = shapefile_df, 
+          aes(x = long, y = lat, group = group),
+          color = 'black', size = .2) 
+```
+
+```{r, eval = F, include = F}
+ggmap(berkMap) +
+geom_polygon(data = shapefile_df, 
+          aes(x = long, y = lat, group = group),
+          color = 'black', size = .2) 
+```
+
+
+
+### Examine total population by census block:
+```{r}
+# READ IN DATA RIGHT!!!
+census.df <- fortify(censusT, region = 'GEOID10')
+pop <- read.csv(file=census_tract_csv, header = TRUE)
+names(pop)[13] <- "id"
+pop <- pop %>%
+  select(GEOID10, id, TotalPop) %>% 
+  mutate( id = str_c("0", as.character(id)) ) 
+census.df_pop <- left_join(census.df, pop, by = "id")
+```
+
+```{r}
+popdenmap <- ggmap(berkMap) + 
+  geom_polygon(data = census.df_pop, aes(x = long, y = lat, group = group, fill = TotalPop), color = "white", alpha = .7) 
+popdenmap
+```
+
+```{r, eval = F, include = F}
+popdenmap <- popdenmap + theme_bw()
+```
+
+```{r, eval = F, include = F}
+popdenmap  +
+  coord_fixed(1.3) 
+```
+
+```{r, eval = F, include = F}
+popdenmap <- popdenmap +
+  ditch_the_axes 
+popdenmap
+```
+
+```{r, eval = F, include = F}
+popdenmap + scale_fill_gradient(trans = "log10")
+```
+
+```{r, eval = F, include = F}
+popamts <- censusCSV$TotalPop
+popmin <- min(popamts)
+popmin
+popmax <- max(popamts)
+popmax
+
+#popints <- diff(range(popamts))
+
+popints <- (popamts - min(popamts))/diff(range(popamts)) # recorts the percentage difference from the minimum population
+
+#popints_df 
+```
+
+```{r, eval = F, include = F}
+pd2 <- popdenmap + 
+    scale_fill_gradientn(colours = rev(rainbow(7)),
+                         breaks = c(2, 4, 10, 100, 1000, 10000),
+                         trans = "log10") 
+pd2
+```
+
+```{r, include = F, echo = F}
+bpop2 <- berkpop %>%
+  select(-Total.population..not.Hispanic.or.Latino) %>%
+   select(-Two.or.More.Races) %>%
+  select(-One.race.total)
+
+bpop2$Other = bpop2$American.Indian.and.Alaska.Native +
+                  bpop2$Native.Hawaiian.and.Other.Pacific.Islander +
+                  bpop2$Some.Other.Race
+
+bpop2 <- bpop2 %>%
+  mutate(Percent.Black = Black.or.African.American/Total.population) %>%
+  mutate(Percent.Other = Other/Total.population) %>%
+  mutate(Percent.White = White/Total.population) %>%
+  mutate(Percent.Asian = Asian/Total.population) %>%
+  mutate(Percent.Hispanic = Hispanic.or.Latino/Total.population) %>%
+  mutate(Percent.Berkeley = Total.population/sum(Total.population)) %>%
+  select(-TotalPop) %>%
+   select(-American.Indian.and.Alaska.Native,-Native.Hawaiian.and.Other.Pacific.Islander, -Some.Other.Race)
+
+
+# %>%
+#   mutate(Relative.Per.Black = Black.or.African.American/sum(Black.or.African.American)) %>%
+#   mutate(Relative.Per.Other = Other/sum(Other)) %>%
+#   mutate(Relative.Per.White = White/sum(White)) %>%
+#   mutate(Realtive.Per.Asian = Asian/sum(Asian)) %>%
+#   mutate(Relative.Per.Hispanic = Hispanic.or.Latino/sum(Hispanic.or.Latino)) %>%
+
+names(bpop2)[2] <- "Population"
+names(bpop2)[3] <- "Hispanic"
+names(bpop2)[5] <- "Black"
+names(bpop2)
+
+```
+
+```{r, include = FALSE, echo = FALSE}
+# read in the data:
+census.df <- fortify(censusT, region = 'NAME10')
+census.df <- left_join(census.df, bpop2, by = "id")
+```
+
+Population by Race:
+```{r}
+p <- colorRampPalette(c("white", "red"))(128)
+palette(p)
+
+# Scale the total population to the palette
+#popamts <- sh2@data$TotalPop.x
+
+# create the colors:
+# cols <- (popamts - min(popamts))/diff(range(popamts))*127+1
+
+black1 <- berkgg + 
+  geom_polygon(data = census.df, aes(x = long, y = lat, group = group, fill = Black.or.African.American), color = "white", alpha = .5)  +
+  ggtitle("Black Population") + 
+  scale_fill_gradientn(trans = "log10", colors = p) +
+  labs(fill = "Population\nLog Scale")
+black1
+
+# +
+#   labs(fill = element_blank())+
+#   guides(fill = FALSE)
+
+black2 <- berkgg + 
+  geom_polygon(data = census.df, aes(x = long, y = lat, group = group, fill = Percent.Black), color = "white", alpha = .7) +
+  ggtitle("Percent Black") +
+  scale_fill_gradientn(trans = "log10", colors = p) +
+  labs(fill = "Population\nDensity\nLog Scale")
+black2
+```
+
+View side by side:
+```{r}
+require(gridExtra)
+grid.arrange(black1, black2, ncol=2)
+```
+
+### BPD Stops:
+```{r}
+# edit bpd stops:
+# nblacks <- sum(df$Race == "Black")
+# nasians <- sum(df$Race == "Asian")
+# nwhite <- sum(df$Race == "White")
+# nother <- sum(df$Race == "Other")
+# nhisp <- sum(df$Race == "Hispanic")
+# totalpop <- sum(berkpop$TotalPop)
+# stop.summary <- data.frame(Race = unique(df$Race))
+
+stop.summary <- df %>%  
+   group_by(Race) %>%
+   summarise(Stopped=n() ) %>%
+  mutate(Percent.Stopped = Stopped/nrow(df)) 
+
+racepops <- c(sum(bpop2$Asian), sum(bpop2$Black), sum(bpop2$Hispanic), sum(bpop2$Other), sum(bpop2$White) )
+
+stop.summary$Race.Population = racepops
+stop.summary$Percent.Race.Stopped = stop.summary$Stopped/stop.summary$Race.Population
+  
+```
+
+```{r}
+# all stop density:
+allbpd_density <- berkgg +
+  stat_density2d(aes(x = long, y = lat, fill= ..level.., alpha = 2* ..level..),
+                 size = 2, bins = 5, data = df, geom = "polygon") +
+  scale_fill_gradientn(trans = "log10", colors = p) +
+  theme (panel.grid.major = element_blank (), # remove major grid
+         panel.grid.minor = element_blank ()  # remove minor grid
+  ) + 
+  ggtitle("All BPD Stops Density, 2015-2016") +
+  labs(alpha = element_blank()) +
+  guides(alpha = FALSE)
+allbpd_density
+
+
+# by race:
+bpd_race <- berkgg +
+  stat_density2d(aes(x = long, y = lat, fill= ..level.., alpha =  ..level..),
+                 size = 2, bins = 5, data = df, geom = "polygon") +
+  scale_fill_gradientn(trans = "log10", colors = p) +
+  theme (panel.grid.major = element_blank (), # remove major grid
+         panel.grid.minor = element_blank ()  # remove minor grid
+  ) + 
+  guides(alpha = FALSE) +
+  facet_grid( ~ Race)
+bpd_race
+
+```
+
+### Bar Charts:
+
+```{r}
+p <- ggplot(df, aes(Enforcement, fill = Enforcement)) + 
+    geom_bar(aes(y = (..count..)/tapply(..count..,..PANEL..,sum)[..PANEL..])) +  facet_grid(~Race) +
+  scale_y_continuous(labels=percent) +
+  labs(y = "Percent Stopped") +
+  ggtitle("Results of Stops by Race")
+p
+```
+
+```{r}
+p1 <- ggplot(df, aes(Enforcement, fill = Enforcement)) + 
+    geom_bar(aes(y = (..count..)/tapply(..count..,..PANEL..,sum)[..PANEL..])) +  
+  scale_y_continuous(labels=percent, limits=c(0,1)) +
+  labs(y = "Percent Stopped") + ggtitle("Results of Stops") +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )   + guides(fill = FALSE)
+
+p1race <- ggplot(df, aes(Enforcement, fill = Enforcement)) + 
+    geom_bar(aes(y = (..count..)/tapply(..count..,..PANEL..,sum)[..PANEL..])) +  
+  scale_y_continuous(labels=percent, limits=c(0,1)) +
+  labs(y = "Percent Stopped") +
+  ggtitle("Results of Stops by Race") +
+  facet_grid( ~ Race) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  ) 
+
+
+
+```
+
+```{r}
+grid.arrange(p1,p1race,ncol=2)
+```
+
+
+```{r}
+
+
+p2 <- ggplot(df, aes(Reason, fill = Reason)) + 
+    geom_bar(aes(y = (..count..)/tapply(..count..,..PANEL..,sum)[..PANEL..])) +  
++  
+  scale_y_continuous(labels=percent, limits=c(0,1)) +
+  labs(y = "Percent") + ggtitle("Reason for Stops") +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )   + guides(fill = FALSE)
+
+p2race <- ggplot(df, aes(Reason, fill = Reason)) + 
+    geom_bar(aes(y = (..count..)/tapply(..count..,..PANEL..,sum)[..PANEL..])) +  
+  scale_y_continuous(labels=percent, limits=c(0,1)) +
+  labs(y = "Percent Stopped") +
+  ggtitle("Reason for Stops") +
+  facet_grid( ~ Race) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+p3 <- ggplot(df, aes(CarSearch, fill = CarSearch)) + 
+    geom_bar(aes(y = (..count..)/tapply(..count..,..PANEL..,sum)[..PANEL..])) +  
+  scale_y_continuous(labels=percent, limits=c(0,1)) +
+  labs(y = "Percent Stopped") +
+  ggtitle("Car Search by Race") +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  )   + guides(fill = FALSE)
+
+p3race <- ggplot(df, aes(Reason, fill = Reason)) + 
+    geom_bar(aes(y = (..count..)/tapply(..count..,..PANEL..,sum)[..PANEL..])) +  
+  scale_y_continuous(labels=percent, limits=c(0,1)) +
+  labs(y = "Percent Stopped") +
+  ggtitle("Car Search by Race") +
+  facet_grid( ~ Race) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  )
+
+df$AgeRange = factor(df$AgeRange)
+levels(df$AgeRange) <- c("10-19","20-29","30-39","40-49")
+
+p4 <- ggplot(df, aes(AgeRange, fill = AgeRange )) + 
+    geom_bar(aes(y = (..count..)/tapply(..count..,..PANEL..,sum)[..PANEL..])) +  
+  scale_y_continuous(labels=percent, limits=c(0,1)) +
+  labs(y = "Percent Stopped") +
+  ggtitle("Age Range of Car Stops by Race") +
+  labs(x = "Age Range") +
+  labs(fill = "Age Range")
+
+
+
+```
+
+```{r}
+
+```
+
+
