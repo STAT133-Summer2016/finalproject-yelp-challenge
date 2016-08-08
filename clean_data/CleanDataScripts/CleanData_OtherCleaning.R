@@ -144,4 +144,32 @@ mergedf <- mergedf %>%
 # write.csv(mergedf, "../../clean_data/StopData_clean.csv" )
 
 
+# how to create the tables:
 
+tbl_summary <- mergedf %>%  
+  group_by(Race) %>%
+  summarise(Stopped=n() ) %>%
+  mutate(Percent.Stopped = Stopped/nrow(df)) 
+
+tbl_summary
+
+# racepops <- c(sum(bpop2$Asian), sum(bpop2$Black), sum(bpop2$Hispanic), sum(bpop2$Other), sum(bpop2$White) )
+# stop.summary$Race.Population = racepops
+# stop.summary$Percent.Race.Stopped = stop.summary$Stopped/stop.summary$Race.Population
+
+# percent reason:
+
+tbl_reason <- mergedf %>%  
+  group_by( Reason) %>%
+  summarise(Stopped=n() ) %>%
+  mutate(Percent.Stopped = Stopped/nrow(df)) 
+
+tbl_enforcement <- mergedf %>% 
+  group_by(Enforcement) %>%
+  summarise(Stopped = n()) %>%
+  mutate(Percent.Stopped = Stopped/nrow(df))
+
+tbl_enforcement_W <- mergedf[as.character(Race) == "White"] %>%
+  group_by(Reason) %>%
+  summarise(Stopped=n() ) %>%
+  mutate(Percent.Stopped = Stopped/nrow(df)) 
