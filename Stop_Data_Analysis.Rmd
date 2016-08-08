@@ -121,11 +121,7 @@ stop_time_percentage
 (5) Black people contribute a especially high percentage of the incidents at night, while the white people contribute a especially high percentage of the incidents at the noon.
 
 story: 
-Comparing to any other race, Asian people contributes the lowest percentage of the incidents. This corresponds to the "model-minority" stereotype of the Asian poeple - seldom causing incidents. In addition, top 2 races of causing incidents are Black and White. This fact also makes sense - the majority of race of Berkeley residents is black and white. 
-
-The percentage of people aged from 0 to 18 of each race is less than 9%. People aged from 0 to 18 contributes the smallest percentage in each race. A reason for this fact is that young teenager contributes minority of the population of Berkeley. And we can also induce that Berkeley teenger eduation is qualified.
-
-The percentage of people aged from 18 to 29 of each race is about or greater than 30, which is a important factor. One reason for this fact is that Bekeley is a university town. Most university students(undergraduates, master and PhD students) are aged from 18 to 29. Therefore, the ratio of people aged from 18 to 29 to all the residents in Berkeley should be greater than the average ratio of other cities in the US. Another reason is that young people maybe more impulsive to cause an incidents. The fact that quite a few of incidents are caused by people aged from 18 to 29 is reasonable here at Berkeley. Another interesting fact about people aged from 18 to 29 is that they contributes a majority of incidents at night. A reason for this fact is that these people are more liable to stay up late or all night and enjoy their nightlife outside and cause incidents.
+Comparing to any other race, Asian people contributes a lowest percentage of the incidents. This corresponds to the "model-minority" stereotype of the Asian poeple - 
 
 
 ### Analysis of Day
@@ -171,14 +167,6 @@ Day   | Count | A    | B    | H    | O    | W
 
 (5) White people are less liable to commit an incident on Sunday, and more liable to commit an incident on Tuesday and Wednesday, which is similar to Asian people.
 
-Story:
-Number of incidents on Monday is much more less than that of any other days in a week. An reasonable guess for this fact is that people are more careful on Monday as Monday is the beginning of the week. In addition, after the rest on the weekends, people are more energetic to focus and reduce the possibility of cause an incidents.
-
-An interesting fact is that number of incidents on Sunday is much more less than other 5 days in a week also. There are two guess for this fact: The first reason is that part of people tend to rest at home on Sunday, so these people reduce the amount of incidents happened on Sunday. (A senerio fits for the reason is that you can seldom see large amount of people on Berkeley campus on Sunday.) The second reason is that the police may want to rest on Sunday, so the number of policemen working on Sunday is less. Therefore, the Berkeley Police Department stop for less incidents on Sunday. 
-
-Another interesing fact is that the number of incidents happened on Friday and Saturday is high. A reasonable deduction of the fact is that people tend to participate some entertainment activities on the weekends, so the additional activities increase the probability of causing an error.
-
-
 ### Analysis of incidents of each hour in a day
 #### Picture: count of person recorded in each hour in a day
 ```{r, echo=FALSE}
@@ -208,10 +196,6 @@ Hour  | Count | Hour | Count| Hour | Count| Hour | Count
 (1) time span of 22:00 to 22:59 in a day has the highest incidents count, and 23:00 to 23:59 has the second highest, which means that Berkeley area is most dangerous from 10pm to 12am in a day, which corresponds to daily life experience.
 (2) From 12am to 5am, incidents count decreases gradually. A reasonable conjecture of this fact is that more and more people choose to sleep as time goes by in this time span. For the similar reason, incidents count increases gradually from 5am to 11am.
 (3) After the evening until the midnight, the incidents number increases gradually again in a day. The tally of the statistics and observation in daily life is in a good agreement.
-
-Story:
-
-
 
 #### Picture: Probability of BPD stop for a specific age range in a specific hour
 

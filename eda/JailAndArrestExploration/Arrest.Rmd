@@ -1,0 +1,303 @@
+---
+title: "Arrest Dataset"
+author: "Shangjun Jiang"
+date: "30 July 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/Jenny_Analysis")
+```
+
+
+```{r}
+library(rvest)
+library(xml2)
+library(ggplot2)
+library(lubridate)
+library(stringr)
+library(dplyr)
+library(tidyr)
+library(readr)
+library(scales)
+library(ggvis)
+```
+
+#load and modify the dataset
+```{r}
+
+arrestage <-read.csv("Berkeley_PD_Log_-_Arrests.csv")
+arrestage$Age <- as.factor(arrestage$Age)
+
+arrest <- read.csv("Berkeley_PD_Log_-_Arrests.csv")
+arrest$Age <- as.integer(arrest$Age)
+arrest$Age[arrest$Age<20] <- "0-19"
+arrest$Age[arrest$Age>=20 & arrest$Age<30] <- "20-29"
+arrest$Age[arrest$Age>=30 & arrest$Age<40] <- "30-39"
+arrest$Age[arrest$Age>=40 & arrest$Age<50] <- "40-49"
+arrest$Age[arrest$Age>=50 & arrest$Age<60] <- "50-59"
+arrest$Age[arrest$Age>=60 & arrest$Age<70] <- "60-69"
+arrest$Age[arrest$Age>=70 & arrest$Age<80] <- "70-79"
+arrest$Age <- as.factor(arrest$Age)
+
+arrest[arrest == ""] <- NA
+
+arrest$Height <- str_replace(arrest$Height, "Ft.", "") %>% 
+  str_replace("In.", "") %>% 
+  str_replace("  ", ",")
+
+arrest$Height <- as.factor(arrest$Height)
+
+arrest$Date.and.Time <- mdy_hms(arrest$Date.and.Time)
+arrest$Date.of.Birth <- mdy(arrest$Date.of.Birth)
+arrest$Statute.Type <- as.factor(arrest$Statute.Type)
+
+#names(arrest)
+#[1] "Arrest.Number"       "Date.and.Time"       "Arrest.Type"        
+#[4] "Subject"             "Race"                "Sex"                
+#[7] "Date.of.Birth"       "Age"                 "Height"             
+#[10] "Weight"              "Hair"                "Eyes"               
+#[13] "Statute"             "Statute.Type"        "Statute.Description"
+#[16] "Case.Number"    
+naarrest <- na.omit(arrest) 
+
+```
+
+## ggplot
+```{r,fig.width=18, fig.asp=0.8}
+
+ggplot(naarrest)+
+  geom_bar(aes(x=Age, 
+               fill = Race))+
+  geom_smooth()
+  facet_wrap(~Race)+
+ labs(x= "Age",
+       y = "Number of people",
+       title = "Arrest Data") 
+  
+ggplot(naarrest)+
+  geom_point(aes(x=Age, 
+                 y=Race))+
+  geom_smooth()
+
+  #scale_x_discrete(limits = c(0,80),
+                   #breaks = seq(10,80,10))
+
+```
+
+
+#arrest date and time
+
+```{r}
+
+#group_by hour, count
+
+arrest<- arrest %>% 
+  mutate(arresthour =hour(Date.and.Time))
+#group by arrest hour
+newarrest<- arrest %>% 
+  group_by(arresthour) %>% 
+  summarise(hourcount=n())
+#group by race
+new2arrest <- arrest %>% 
+  group_by(Race, arresthour) %>% 
+  summarise(racecount=n())
+#group by age
+new3arrest <- na.omit(arrest) %>% 
+  group_by(Age, arresthour) %>% 
+  summarise(agecount=n())
+
+
+racearrest<-left_join(new2arrest,newarrest, by = "arresthour")
+
+agearrest <-left_join(new3arrest,newarrest,by = "arresthour")
+
+
+#race arrest plot
+ggplot(racearrest)+
+  geom_bar(aes(x=arresthour, 
+                     y=(racecount/hourcount),
+                     fill = Race),
+           stat="identity") +
+  facet_wrap(~Race)
+
+#age arrest plot
+ggplot(agearrest)+
+  geom_bar(aes(x=arresthour, 
+                     y=(agecount/hourcount),
+                     fill = Age),
+           stat="identity") +
+  facet_wrap(~Age)
+
+
+
+
+#str(new3arrest)
+ggplot(naarrest)+
+  geom_histogram(aes(x=hour(Date.and.Time), 
+                     y=..density..,
+                     fill = Race)
+                 ,bins= 30) +
+  facet_wrap(~Sex)
+
+
+## hour and age and sex. 
+ggplot(naarrest)+
+  geom_point(aes(x=hour(Date.and.Time), 
+                 y=Age,
+                 color = Sex)) 
+
+## height and race
+ggplot(naarrest)+
+  geom_bar(aes(x=Height,
+              fill = Race)) 
+
+
+## arrest hour  - histogram
+## mostly in the evning and midnight 
+ggplot(naarrest)+
+  geom_histogram(aes(x=hour(Date.and.Time), 
+                     y=..density..,
+                     fill = Race),
+                 bins= 30)+
+  facet_wrap(~Race)
+
+## arrest hour  -bar
+## mostly in the evning and midnight 
+ggplot(naarrest)+
+  geom_bar(aes(x=hour(Date.and.Time),
+                     fill = Race))+
+  facet_wrap(~Race)
+
+
+
+```
+
+
+
+## date of birth and race
+
+```{r}
+ggplot(naarrest)+
+  geom_point(aes(x=Height,
+              y= month(Date.of.Birth),
+              color = Sex,
+              shape = Race))
+
+```
+
+# status type and race
+
+```{r}
+#group_by hour, count
+
+
+
+type1<- arrest %>% 
+  group_by(Statute.Type) %>% 
+  summarise (typecount= n())
+type2 <-arrest %>% 
+  group_by(Race,Statute.Type) %>% 
+  summarise (racecount= n())
+type3 <-arrest %>% 
+  group_by(Age,Statute.Type) %>% 
+  summarise (agecount= n())
+type4 <- left_join(type2,type1, by= "Statute.Type")
+type5 <- left_join(type3,type1, by= "Statute.Type")
+
+
+
+
+#BMC Berkeley Municipal Code
+#BP Business and Professional Code
+#EC Education Code
+#GC Government Code
+#HN Harbors and Navigations Code
+#HS Health and Safety Code
+#PC Penal Code
+#VC Vehicle Code
+#WI Welfare and Institutions Code
+
+type$Statute.Type <- str_replace(type$Statute.Type, ";$", "")
+
+#race arrest plot
+
+#Probability of BPD arrest data for a specific age range in a specific hour 
+ggplot(na.omit(type4))+
+  geom_bar(aes(x=Statute.Type, 
+                     y=(racecount/typecount),
+                     fill = Race),
+           stat="identity") +
+  facet_wrap(~Race)+
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 5))+
+  labs(x= "Age",
+       y = "Number of people",
+       title = "Arrest Data") 
+
+
+
+ggplot(na.omit(type5))+
+  geom_bar(aes(x=Statute.Type, 
+                     y=(agecount/typecount),
+                     fill = Age),
+           stat="identity") +
+  facet_wrap(~Age)+
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 5))
+
+
+```
+
+
+## ggvis
+```{r}
+
+naarrest <- na.omit(arrest) 
+naarrest %>% 
+  ggvis(~Age,
+        fill = ~Race,
+        opacity := 0.7) %>%
+  layer_bars() %>%
+  add_tooltip((function(naarrest) naarrest$Race))
+  
+  
+  #add_axis("x", 
+           #title = "Age",
+           #ticks = 7, 
+           #values = c("0-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70-79"))
+
+  
+```
+
+
+
+
+```{r, eval = F}
+na.omit(arrest) %>% 
+      ggvis(~GDPPC, ~life, fill = ~Region, size = ~Population, 
+            stroke := "black", opacity := .7) %>% 
+      layer_points() %>% 
+      scale_numeric("x",
+                    domain = c(100, 100000),
+                    trans = "log",
+                    nice = TRUE,
+                    expand = 0) %>%
+      add_axis("x", title = "GDP Per Capita (Inflation-Adjusted USD)",
+               ticks = 3, format = "d", values = c(500, 5000, 50000)) %>% 
+      scale_numeric("y", domain = c(10, 90)) %>% 
+      add_axis("y", title = "Life Expectancy at Birth (Years)",
+               values = c(25, 50, 75)) %>% 
+      scale_numeric("size",
+                    domain = c(1, 10^9.5),
+                    range = c(10, 1000),
+                    trans = "sqrt") %>% 
+      add_tooltip(country_tooltip, "hover") %>% 
+      hide_legend("size") %>% 
+      add_legend("fill", title = "Region")
+  })
+```
+
+

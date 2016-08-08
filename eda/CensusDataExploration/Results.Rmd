@@ -1,0 +1,183 @@
+---
+title: "Results"
+author: "Rebecca Reus"
+date: "August 7, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = FALSE, echo = FALSE, warning = FALSE}
+library(sp)
+library(ggmap)
+library(tidyr)
+library(dplyr)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(readr)
+library(maps)
+library(mapdata)
+library(rgdal)
+library(rgeos)
+#library(gpclib)       # loads polygon clipping library
+library(maptools)     # loads sp library too
+library(RColorBrewer) # creates nice color schemes
+library(classInt)     # finds class intervals for continuous variables
+library(gdata)
+library(XLConnect)
+library(data.table)
+library(gridExtra)
+library(pander)
+library(formattable)
+
+# data file names:
+
+file_stops <- "../../clean_data/StopData_clean.csv" 
+file_berkcensus2010 <- "../../clean_data/berk_census2010_clean.csv" 
+file_berkcensus2010map <-"../../clean_data/berk_census2010_mapdata.rds" 
+file_stopsummary <- "../../clean_data/StopData_summary.csv" 
+
+# read in the data:
+
+stops <- read_csv(file = file_stops)
+berkcensus2010 <- read_csv(file = file_berkcensus2010)
+berkcensus2010map <- readRDS(file_berkcensus2010map)
+stopsummary <- read.csv( file_stopsummary )
+stopsummary <- select(stopsummary, -X)
+
+# Location info (to set lim values for coordinates):
+
+latmax <- max( stops$lat, na.rm = TRUE )
+latmin <- min( stops$lat, na.rm = TRUE )
+lonmax <- max( stops$long, na.rm = TRUE )
+lonmin <- min( stops$long, na.rm = TRUE )
+latvals <- c( latmin, latmax )
+lonvals <- c( lonmin, lonmax )
+
+# get rid of the axes theme:
+
+ditch_the_axes <- theme(
+  axis.text = element_blank(),
+  axis.line = element_blank(),
+  axis.ticks = element_blank(),
+  panel.border = element_blank(),
+  panel.grid = element_blank(),
+  axis.title = element_blank()
+  )
+
+# get the plain Berkeley map from Google:
+berkMap = map = get_map(location = c( lon = mean(lonvals), lat = mean(latvals) ), zoom = 12) 
+
+berkgg <-ggmap(berkMap) +
+  xlim(-122.335, lonmax) + ylim(latvals) +
+  ditch_the_axes 
+#berkgg
+
+
+```
+
+```{r, include = FALSE, echo = FALSE, warning = FALSE}
+
+# create color palette:
+
+p <- colorRampPalette(c("white", "red"))(128)
+palette(p)
+
+# create the maps:
+popdenmap <- berkgg + 
+  geom_polygon(data = berkcensus2010map, aes(x = long, y = lat, group = group, fill = Percent.Berkeley), color = "white", alpha = .7) +
+  ggtitle("2010 Population Density") +
+  labs(fill = "Percent") +
+  scale_fill_gradientn(colors = p)
+popdenmap
+
+# pd2 <- popdenmap + 
+#   scale_fill_gradientn(colours = rev(rainbow(7) ) ) +
+#   ggtitle("Berkeley Census 2010:\nPopulation")
+# pd2
+
+
+# black population:
+
+
+black2 <- berkgg + 
+  geom_polygon(data = berkcensus2010map, aes(x = long, y = lat, group = group, fill = Percent.Black), color = "white", alpha = .7) +
+  scale_fill_gradientn(colors = p, limits = c(0,1)) +
+  guides( fill = "none" ) +
+  ggtitle("% Black")
+
+# white population:
+
+w2 <- berkgg + 
+  geom_polygon(data = berkcensus2010map, aes(x = long, y = lat, group = group, fill = Percent.White), color = "white", alpha = .7) +
+  scale_fill_gradientn(colors = p, limits = c(0,1)) +
+  guides( fill = "none" ) +
+  ggtitle("% White")
+
+# asian population:
+
+a2 <- berkgg + 
+  geom_polygon(data = berkcensus2010map, aes(x = long, y = lat, group = group, fill = Percent.Asian), color = "white", alpha = .7) +
+  scale_fill_gradientn(colors = p, limits = c(0,1)) +
+  guides( fill = "none" ) +
+  ggtitle("% Asian")
+
+# hispanic population:
+
+h2 <- berkgg + 
+  geom_polygon(data = berkcensus2010map, aes(x = long, y = lat, group = group, fill = Percent.Hispanic), color = "white", alpha = .7) +
+  scale_fill_gradientn(colors = p, limits = c(0,1)) +
+  guides( fill = "none" ) +
+  ggtitle( "% Hispanic")
+
+# other population:
+
+o2 <- berkgg + 
+  geom_polygon(data = berkcensus2010map, aes(x = long, y = lat, group = group, fill = Percent.Other), color = "white", alpha = .7) +
+  scale_fill_gradientn(colors = p, limits = c(0,1)) +
+  guides( fill = "none" ) +
+  ggtitle("% Other")
+```
+
+## Population Density Maps
+
+```{r, warning = FALSE, echo = F, fig.width = 5, fig.height = 5}
+popdenmap
+```
+
+```{r, warning = FALSE, echo = FALSE,  fig.width = 15, fig.height = 5}
+grid.arrange(a2,black2,h2,o2,w2, ncol = 5)
+```
+
+## Comparing Stop Density to Population Density
+
+```{r, message = F, echo = FALSE}
+ss <- stopsummary %>%
+  select(Race, Percent.Stopped, Percent.Race.Stopped)
+
+ss$Percent.Stopped <- percent(ss$Percent.Stopped)
+ss$Percent.Race.Stopped <- percent(ss$Percent.Race.Stopped)
+
+names(ss)[2:3] <- c("Percent Stopped", "Percent Population Stopped")
+
+panderOptions("digits", 2)
+pander(ss)
+
+bargraph1 <- ggplot(ss, aes(Race, `Percent Stopped`, fill = Race))+
+  geom_bar(stat = "identity") +
+  guides( fill = FALSE)
+bargraph2 <- ggplot(ss, aes(Race, `Percent Population Stopped`, fill = Race))+
+  geom_bar(stat = "identity") +
+  guides( fill = FALSE)
+grid.arrange(bargraph1, bargraph2, ncol = 2)
+```
+
+
+
+
+
+
+

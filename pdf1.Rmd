@@ -36,7 +36,6 @@ library(grid)
 library(gridExtra)
 library(pander)
 library(formattable)
-library(pander)
 library(extrafont)
 font_import()
 loadfonts()
@@ -309,7 +308,7 @@ p2 <- ggplot(pop1)+
 
 # stop data map
 map_stop1 <- berkgg_zoom2 +
-  geom_point(data = stops, aes(x=long,y=lat), alpha = .2) +
+  geom_point(data = stops, aes(x=long,y=lat), alpha = .2, color = "red") +
   ggtitle("Berkeley Police Stops, 2015-2016")+
   theme(plot.title = element_text(size = 14, family = "Georgia", face = "bold"), 
         text=element_text(family="Times New Roman", size = 10),
@@ -319,7 +318,7 @@ map_stop1 <- berkgg_zoom2 +
 
 # calls for service
 map_callservice1 <- berkgg_zoom2 +
-  geom_point(data = na.omit(callservice), aes(x=long,y=lat), alpha = .2) +
+  geom_point(data = na.omit(callservice), aes(x=long,y=lat), alpha = .2, color = "red") +
   ggtitle("Calls for Service (not criminal reports) \nWithin 180 days (Feb-July 2016)")+
   theme(plot.title = element_text(size = 14, family = "Georgia", face = "bold"), 
         text=element_text(family="Times New Roman", size = 10),

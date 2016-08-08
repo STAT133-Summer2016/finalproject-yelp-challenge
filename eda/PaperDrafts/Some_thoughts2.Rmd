@@ -1,0 +1,286 @@
+---
+title: "Some ideas"
+author: "Shangjun Jiang"
+date: "4 August 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning = FALSE, message = FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(sp)
+library(ggmap)
+library(tidyr)
+library(plyr)
+library(dplyr)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(readr)
+library(data.table)
+library(rworldmap)
+library(maps)
+library(mapdata)
+library(maptools)
+library(rgeos)
+library(scales)
+library(RgoogleMaps)
+library(tmap)
+library(sp)
+library(rgdal)
+library(rgeos)
+library(classInt)
+library(gdata)
+library(XLConnect)
+library(RColorBrewer)
+
+```
+
+```{r, echo=FALSE, warning = FALSE, message = FALSE, include = FALSE}
+# Read data
+
+# data file names:
+
+file_stops <- "../../clean_data/StopData_clean.csv" 
+file_berkcensus2010 <- "../../clean_data/berk_census2010_clean.csv" 
+file_berkcensus2010map <-"../../clean_data/berk_census2010_mapdata.rds" 
+file_stopsummary <- "../../clean_data/StopData_summary.csv" 
+file_tables <-  "../../clean_data/Tables_AgeSexRacePop.rds"
+file_calls <-  "../../clean_data/CallsForService.rds"
+
+
+# read in the data:
+
+mergedf <- read_csv(file = file_stops)
+berkcensus2010 <- read_csv(file = file_berkcensus2010)
+berkcensus2010map <- readRDS(file_berkcensus2010map)
+stopsummary <- read.csv( file_stopsummary )
+stopsummary <- select(stopsummary, -X)
+callservice <- read_csv(file = file_calls)
+tables <- readRDS(file = file_tables)
+pop1 <- as.data.frame(tables[4])
+race <- as.data.frame(tables[3])
+sex <- as.data.frame(tables[2])
+age <- as.data.frame(tables[1])
+
+## Location info:
+
+latmax <- max(mergedf$lat, na.rm = TRUE) 
+latmin <- min(mergedf$lat, na.rm = TRUE)
+lonmax <- max(mergedf$long, na.rm = TRUE) 
+lonmin <- min(mergedf$long, na.rm = TRUE)
+latvals <- c(latmin, latmax)
+lonvals <- c(lonmin, lonmax)
+
+# get rid of the axes theme:
+
+ditch_the_axes <- theme(
+  axis.text = element_blank(),
+  axis.line = element_blank(),
+  axis.ticks = element_blank(),
+  panel.border = element_blank(),
+  panel.grid = element_blank(),
+  axis.title = element_blank()
+  )
+
+# get the plain Berkeley map from Google:
+
+berkMap = map = get_map(location = c( lon = mean(lonvals), lat = mean(latvals) ), zoom = 12) 
+
+berkgg <-ggmap(berkMap) +
+  xlim(-122.335, lonmax) + ylim(latvals) +
+  ditch_the_axes 
+
+
+
+
+############################## multiplot function ############################## 
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+
+
+
+```
+
+## PART I: Racial Discrimination??
+
+### Figure 1: Percentage of being stopped by different races
+```{r, fig.height = 5, fig.width = 10, echo = FALSE, warning= FALSE, include = FALSE}
+
+# create some figures, create some new data frames:
+
+
+
+p1 <- ggplot(pop1)+
+  geom_bar(aes(x=Race,
+               y=percentage), 
+           stat = "identity",
+           fill = c("#FFCC00","#E1B378","#5F9EA0","#66FFCC","#40B8D0"))+
+  geom_text(aes(x=Race,
+               y=percentage,
+               label = paste0(percentage,"%")), 
+            size=5,
+            colour= "#000000")+
+  scale_y_continuous(labels=percent, limits = c(0,1)) +
+  labs(title = "The percentage of being stopped by police (%)",
+       x = "Race",
+       y = "Percentage") +
+  theme(axis.line = element_line(size=1, colour = "black"), 
+        panel.grid.major = element_line(colour = "#d3d3d3"), panel.grid.minor = element_blank(), 
+        panel.border = element_blank(), panel.background = element_blank()) + 
+  theme(plot.title = element_text(size = 14, family = "Tahoma", face = "bold"), 
+        text=element_text(family="Tahoma", size = 15),
+        axis.text.x=element_text(colour="black", size = 10), 
+        axis.text.y=element_text(colour="black", size = 10)) 
+  
+
+p2 <- ggplot(pop1)+
+  geom_bar(aes(x=Race,
+               y=totalp), 
+           stat = "identity",
+           fill = c("#FFCC00","#E1B378","#5F9EA0","#66FFCC","#40B8D0"))+
+  geom_text(aes(x=Race,
+               y=totalp,
+               label = paste0(totalp,"%")), 
+            size=5,
+            colour= "#000000")+
+  scale_y_continuous(labels=percent, limits = c(0,1)) +
+  labs(title = "The percentage of berkeley census data 2010 (%)",
+       x = "Race",
+       y = "Percentage") +
+  theme(axis.line = element_line(size=1, colour = "black"), 
+        panel.grid.major = element_line(colour = "#d3d3d3"), panel.grid.minor = element_blank(), 
+        panel.border = element_blank(), panel.background = element_blank()) + 
+  theme(plot.title = element_text(size = 14, family = "Tahoma", face = "bold"), 
+        text=element_text(family="Tahoma",size = 15),
+        axis.text.x=element_text(colour="black", size = 10), 
+        axis.text.y=element_text(colour="black", size = 10)) 
+
+
+
+  
+```
+
+```{r, fig.height = 5, fig.width = 10, include = FALSE}
+multiplot(p1, p2,cols=2)
+```
+
+
+Though there are more white people living in Berkeley, if we look at the race data from the percentage, we can clearly see huge differences between the white population and the black population. White people are composed of 55% of the Berkeley population but only 10% of them are being stopped. However, only 10% of the total population are black people but almost half of them are being stopped. 
+
+## a): places of being stopped 
+We are interested in investigating 'where' they are stopped.
+
+### Figure 2: All BPD Stops Density, 2015-2016
+```{r, include = FALSE, warning=FALSE, message = FALSE}
+g1 <- ggmap(berkMap) +
+  stat_density2d(aes(x = long, y = lat, fill= ..level.., alpha = .2* ..level..),
+    size = 2, bins = 5, data = mergedf, geom = "polygon") +
+  scale_fill_gradient(low = "black", high = "red") +
+    theme (panel.grid.major = element_blank (), # remove major grid
+		       panel.grid.minor = element_blank ()  # remove minor grid
+		       )+ 
+  ggtitle("All BPD Stops Density, 2015-2016") +
+  labs(alpha = element_blank())+
+  guides(alpha = FALSE)
+```
+
+
+```{r, fig.width=10, fig.asp=0.8, echo=FALSE}
+# a contour plot
+g1
+
+```
+
+
+```{r, include=FALSE, warning=FALSE, message = FALSE }
+
+### MAP: BPD All Stops w/ Car Searches by Race 2015-2016
+
+g2 <- ggmap(berkMap) +
+  geom_point(aes(x = long, y = lat, size = CarSearch, color = Race), data = mergedf, alpha = 0.2) + 
+  scale_size_discrete( "Car Search", labels = c("No Search", "Search") ) +
+  theme ( 
+		panel.grid.major = element_blank (), # remove major grid
+		panel.grid.minor = element_blank (),  # remove minor grid
+		axis.text = element_blank (), 
+		axis.title = element_blank (),
+		axis.ticks = element_blank ()
+		) + 
+  ggtitle("BPD All Stops w/ Car Searches by Race 2015-2016") +
+  facet_wrap(~ Race, ncol = 3) 
+```
+
+```{r, fig.width=10, fig.asp=0.8, echo=FALSE}
+g2
+```
+
+
+## b): reasons of being stopped 
+Then we are interested in investigating **why** they are stopped.
+
+
+#### arrest + jail data 
+
+
+## c): time of being stopped 
+Then we are interested in investigating **when** they are stopped.
+
+
+## d) outcome of being stopped
+Then we are interested in investigating the result **after** they are stopped. Whether they are being car searched, arrested, or even put into jail. 
+
+
+
+
+## PART II: Age differences?  
+
+
+
+
+## PART IV: Exploration
+#### pick location + time
+#### time you top 3 stop reasons + top 2 race + top 2 age groups
+
+
+
+
+
+
+
+
+
+

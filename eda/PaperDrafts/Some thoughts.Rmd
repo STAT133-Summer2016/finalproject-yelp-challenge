@@ -1,0 +1,299 @@
+---
+title: "Some ideas"
+author: "Shangjun Jiang"
+date: "4 August 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(sp)
+library(ggmap)
+library(tidyr)
+library(plyr)
+library(dplyr)
+library(stringr)
+library(lubridate)
+library(ggplot2)
+library(readr)
+library(data.table)
+library(rworldmap)
+library(maps)
+library(mapdata)
+library(maptools)
+library(scales)
+library(RgoogleMaps)
+library(tmap)
+library(sp)
+library(rgdal)
+library(rgeos)
+library(RColorBrewer)
+setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/final_paper")
+```
+
+
+## Data Loading
+
+```{r, echo=FALSE}
+# Read data
+
+############################## location data ############################## 
+mergedf <- readRDS( 'StopData_merged.rds' )
+
+## Location info:
+latmax <- max(mergedf$lat, na.rm = TRUE) 
+latmin <- min(mergedf$lat, na.rm = TRUE)
+lonmax <- max(mergedf$long, na.rm = TRUE) 
+lonmin <- min(mergedf$long, na.rm = TRUE)
+latvals <- c(latmin, latmax)
+lonvals <- c(lonmin, lonmax)
+
+## Make the variables factors:
+mergedf$CarSearch <- factor(mergedf$CarSearch)
+levels(mergedf$CarSearch) <- c("No Search", "Search")  
+
+mergedf$Race <- factor(mergedf$Race)
+levels(mergedf$Race) <- c("Asian", "Black", "Hispanic", "Other", "White")
+
+mergedf$Enforcement <- factor(mergedf$Enforcement)
+levels(mergedf$Enforcement) <- c("Arrest", "Citation", "Other", "Warning")
+
+mergedf$Reason <- factor(mergedf$Reason)
+levels(mergedf$Reason) <- c("Other", "Investigation", "Probation/Parole", "Reasonable Suscipcion", "Traffic", "Wanted")
+
+mergedf <- mergedf %>%
+  mutate(Arrest = ifelse( 
+    as.character(Enforcement) == "Arrest", 
+    "Arrested",
+    "Not Arrested") ) %>%
+  mutate(Arrest = factor(Arrest))
+
+v <- factor(mergedf$Other)
+
+mergedf <- mergedf %>%
+  mutate(Emergency.Psych.Eval = ifelse( str_detect(as.character(Other), "MH"), 
+                                        yes = "Yes",
+                                        no = "No") )
+
+mergedf$Emergency.Psych.Eval <- factor(mergedf$Emergency.Psych.Eval)
+
+mergedf$Call.Date.Time <- mdy_hm(mergedf$Call.Date.Time)
+mergedf$AgeRange <- as.factor(mergedf$AgeRange)
+
+mergedf <- mergedf %>%
+  mutate(Hour = as.integer(hour(Call.Date.Time))) %>%
+  mutate(Day = as.factor(as.integer(wday(Call.Date.Time))))
+
+
+mergedf$Gender<- mergedf$Gender %>% 
+  str_replace("F", "Female") %>% 
+  str_replace("M", "Male") 
+
+mergedf$AgeRange<- mergedf$AgeRange %>% 
+  str_replace("1", "0-18") %>% 
+  str_replace("2", "18-29") %>% 
+  str_replace("3", "30-39") %>%  
+  str_replace("4", "40+")
+  
+
+### BerkeleyMap 
+berkMap = map = get_map(location = c(lon = mean(lonvals), lat = mean(latvals)), zoom = 14)
+
+
+############################## census data Rebecca ############################## 
+
+blocks <- readOGR("Census_Tract_Polygons2010","Census_tracts_2010", verbose = TRUE)
+
+locationCensusFiles <- "Census_Tract_Polygons2010"
+blocks <- readOGR(locationCensusFiles,"Census_tracts_2010", verbose = TRUE)
+b2 <- spTransform(blocks, CRS("+proj=longlat +datum=WGS84"))
+b3 <- fortify(b2)
+
+############################## census data JENNY ############################## 
+census <- read.csv("Census_Data_2000_And_2010.csv")
+census2010<- census[census$Year==2010,]
+
+racecensus2010 <- census2010[census2010$Heading=="Not Hispanic or Latino"|census2010$Heading=="HISPANIC OR LATINO AND RACE",]
+sexcensus2010 <- census2010[census2010$Heading=="Sex",]
+agecensus2010 <- census2010[census2010$Heading=="Age",]
+
+
+race <- select(racecensus2010, Description, Amount) 
+race$Description <- race$Description %>% 
+  str_replace_all("Hispanic or Latino.*", "Hispanic") %>% 
+  str_replace("Black or African American", "Black") %>% 
+  str_replace("American Indian and Alaska Native", "Other") %>% 
+  str_replace("Native Hawaiian and Other Pacific Islander", "Other") %>% 
+  str_replace("Some other race", "Other") %>% 
+  str_replace("Two or more races", "Other")
+
+race <- race[race$Description !="Not Hispanic",]
+
+race <- race %>% 
+  group_by(Description) %>% 
+  tally(Amount)
+
+names(race) <- c("Description", "Counts")  
+
+sex <- select(sexcensus2010, Description, Amount) 
+
+age <- select(agecensus2010, Description, Amount) 
+age <- age[age$Description != "Median age",]
+age$Description <- c("0-18", "0-18", "18-64", "65+")
+
+age<- age %>% 
+  group_by(Description) %>% 
+  tally(Amount)
+names(age) <- c("Description", "Counts")  
+
+############################## arrest data ############################## 
+arrest <- read.csv("Berkeley_PD_Log_-_Arrests.csv")
+
+############################## jail data ############################## 
+jail <- read.csv("Berkeley_PD_Log_-_Jail_Bookings.csv")
+
+
+############################## call for service data ############################## 
+
+callservice<- read.csv("Berkeley_PD_-_Calls_for_Service.csv") 
+
+callservice<- callservice %>% 
+  mutate(latlong= 
+           str_replace_all(callservice$Block_Location,"[0-9]* [A-Za-z]*", "") %>%
+           str_replace_all("\nBerkeley,\n", "") %>% 
+           str_replace("[A-Za-z]*", "") %>% 
+           str_replace(";","") %>% 
+           str_replace("&","") %>% 
+           str_replace("[A-Za-z]*", "")) 
+
+callservice$latlong<- str_replace(callservice$latlong, "\\(", "") %>% 
+                    str_replace("\\)", "") 
+
+callservice<- callservice %>% 
+  separate(latlong, c("lat", "long"), sep=",")
+
+callservice$lat <- as.numeric(callservice$lat)
+callservice$long <- as.numeric(callservice$long)
+
+
+
+
+############################## multiplot function ############################## 
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+
+
+
+```
+
+
+## PART I: Racial Discrimination??
+
+```{r, fig.height = 5, fig.width = 10, echo = FALSE}
+
+
+m <- stop_by %>% 
+  group_by(Race) %>% 
+  tally()
+names(m) <- c("Race", "stop")
+names(race) <- c("Race", "census")
+
+pop <- left_join(race,m,by = "Race")
+pop <- pop %>% 
+  mutate(percentage=(stop/census)) %>% 
+pop$percentage<- round(pop$percentage, digits = 2)
+
+
+ggplot(pop)+
+  geom_bar(aes(x=Race,
+               y=percentage), 
+           stat = "identity",
+           fill = c("#FFCC00","#E1B378","#5F9EA0","#66FFCC","#40b8d0"))+
+  geom_text(aes(x = Race, 
+                y = percentage, 
+                label = paste0(percentage,"%")), 
+            size=5,
+            colour= "#000000")+
+  scale_y_continuous(labels=percent, limits = c(0,1)) +
+  labs(title = "The percentage of being stopped by police (%)",
+       x = "Race",
+       y = "Percentage") +
+  theme(axis.line = element_line(size=1, colour = "black"), 
+        panel.grid.major = element_line(colour = "#d3d3d3"), panel.grid.minor = element_blank(), 
+        panel.border = element_blank(), panel.background = element_blank()) + 
+  theme(plot.title = element_text(size = 14, family = "Tahoma", face = "bold"), 
+        text=element_text(family="Tahoma"),
+        axis.text.x=element_text(colour="black", size = 10), 
+        axis.text.y=element_text(colour="black", size = 10)) 
+  
+  
+```
+
+
+
+```{r}
+race %>%
+  ggvis(x = ~Description, y = ~Counts) %>%
+  layer_bars(fill = c("#FFCC00","#000000","#330099","#66FFCC","#FFFFFF")) %>%
+  add_tooltip(function(race) race$Counts) 
+  labs(title = "Counts of people recorded in every day in a week")
+
+
+```
+
+#### arrest + jail data 
+
+
+
+
+## PART II: time of being stopped 
+
+#### by race
+#### by age 
+
+
+#### location of being stopped
+#### census data + stop data map + call for service map 
+
+
+
+## PART IV: Exploration
+#### pick location + time
+#### time you top 3 stop reasons + top 2 race + top 2 age groups
+
+
+
