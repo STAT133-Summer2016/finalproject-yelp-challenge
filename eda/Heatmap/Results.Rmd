@@ -149,7 +149,7 @@ popdenmap
 ```
 
 ```{r, warning = FALSE, echo = FALSE,  fig.width = 15, fig.height = 5}
-grid.arrange(w2,black2,a2,h2,o2, ncol = 5)
+grid.arrange(a2,black2,h2,o2,w2, ncol = 5)
 ```
 
 ## Comparing Stop Density to Population Density
