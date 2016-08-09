@@ -728,7 +728,7 @@ bararrest<- ggplot(arrest1)+
             size=5,
             colour= "#000000")+
   scale_y_continuous(labels=percent, limits = c(0,1)) +
-  labs(title = "The Percentage of Being Arrested \nAfter being Stopped (%)",
+  labs(title = "Races Arrested in 30 Days (%)",
        x = "Race",
        y = "Percentage") +
   theme(axis.line = element_line(size=1, colour = "black"), 
@@ -750,7 +750,7 @@ barjail <- ggplot(jail1)+
             size=5,
             colour= "#000000")+
   scale_y_continuous(labels=percent, limits = c(0,1)) +
-  labs(title = "The Percentage of Being jailed \nAfter being Stopped (%)",
+  labs(title = "Races Jailed in 30 Days (%)",
        x = "Race",
        y = "Percentage") +
   theme(axis.line = element_line(size=1, colour = "black"), 
@@ -1045,14 +1045,14 @@ grid.arrange(stopdensitymap4, popdenmap, ncol=2) # figure 6
 
 In order to break down the stop data further, we mapped the data by each of the disposition variables. We found race to be one of the most interesting variables. Consider the stop data density map faceted by race in Figure 7.
 
-```{r, fig.height = 3, fig.width = 12, echo=FALSE, warning = FALSE, message = FALSE, fig.align="center", fig.cap= "Police Stop Density Map by race"}
+```{r, fig.height = 3, fig.width = 12, echo=FALSE, warning = FALSE, message = FALSE, fig.align="center", fig.cap= "Police Stop Density Map by Race"}
 stopdensitymap3 # figure 7
 ```
 
 Figure 7 seems to suggest that the group of people stopped the most in Berkeley are African Americans. For instance, in Centeral Berkeley, the stops for the races defined by the Berkeley Police Department as Asian, Hispanic, White, and Other seem comparatively lower than for Blacks in the same area. In order to consider the context of these stops, we considered the population distribution for these areas, shown in Figure 8. Note that the population density visualized by Figure 8 is conveyed by the range between white (0%) and red (100%). As you can see, White people make up a striking majority in all census 2010 tract areas, which seems to suggest the hypothesis that the population of Black people in Berkeley is being disproportionally affected by police stops.
 
 ```{r, warning = FALSE, echo = FALSE,  fig.width = 15, fig.height = 3, message = FALSE, fig.align = "center", fig.cap= "Berkeley Population Density Map by Race"}
-grid.arrange(a2,black2,h2,o2,w2, ncol = 5) # print population density by race.
+grid.arrange(a2,black2,h2,o2,w2, ncol = 5) # print population density by race # figure 8
 ```
 
 Now, with the population percentages of each group in hand, we were able to compare the results of our stop data analysis to the percent population of each group. In Figure 9 (left), the `Percent Stopped` chart conveys the percent of each group stopped compared to the total number of people stopped. In Figure 9 (right), the `Percent Population Stopped` chart conveys the proportion of people in each group stopped relative to the population of that group living in Berkeley. Even though the people stopped by police are not necessarily Berkeley residents, the `Percent Population Stopped` chart suggests that some groups of people in Berkeley might be more likely to be affected by police stops, especially Black people. 
@@ -1095,12 +1095,12 @@ stop_arrest_gender # figure 14
 
 Figure 15 is interesting because it suggests that black people are more likely to be stopped by the police in Berkeley during the hours of night. The average ratio of black people to all people stopped by the Berkeley Police Department at night is about 40%. Figure 15 also suggests that white people are more liable to be stopped by the police in Berkeley during the hours of daytime. The average ratio of white people to all people stopped by the Berkeley Police Deparment during the day is about 45%. While the ratio of Asian people, Hispanic people and other people stopped by police fluctuate during the daytime and the night, with an average ratio of 8%, 11% and 9% respectively.
 
-```{r, fig.height = 3, fig.width = 10, fig.cap= "Conditional Probability of Being Arrested During a Poby BDP Race VS Hour", echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r, fig.height = 3, fig.width = 10, fig.cap= "Conditional Probability of Being Arrested During a Police Stop: Race VS Hour", echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_percentage3 # figure 15
 ```
 Figure 16 implies that people aged from 18 to 29 are more liable to be stopped by police in Berkeley at night. The average ratio of people aged from 18 to 29 to all people stopped by the Berkeley Police Department at night is greater than 40%. The figure also implies that people aged 40+ are more liable to be stopped by the police during the daytime. The average ratio of people aged 40+ to all people stopped by police during the day is greater than 40%. Further, the ratio of stops of people aged 0-18 and people aged 30-39 fluctuates during the daytime and the night, with an average ratio of 2.5% and 25% respectively.
 
-```{r, fig.height = 3, fig.width = 10, fig.cap= "Probability of Arrested by BDP Age VS Hour", echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r, fig.height = 3, fig.width = 10, fig.cap= "Conditional Probability of Arrested  During a Police Stop: Age VS Hour", echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_percentage2 # figure 16
 ```
 
