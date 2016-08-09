@@ -1070,12 +1070,12 @@ grid.arrange(bargraph1, bargraph2, ncol = 2)
 
 Another disposition variable we found to be of interest was the enforcement variable, which has the options Arrest, Citation, Warning, and Other. We were interested to see how these enforcements were applied to different groups of people. Consider the map below, which appears to suggest that the enforcement of arrest is applied differently to different groups of people. 
 
-```{r, echo=FALSE, warning=F,message=F, fig.align="center", fig.width = 20, fig.height=15}
+```{r, echo=FALSE, warning=F,message=F, fig.cap= "Police Stops Leading to Arrests", fig.align="center", fig.width = 10, fig.height=5}
 map_arrested1 
 ```
 
 
-```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.cap= "Police Stops Leading to Arrests", fig.align = "center", fig.width = 8, fig.height = 3}
+```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.align = "center", fig.width = 5, fig.height = 3}
 map_enforcement
 ```
 
