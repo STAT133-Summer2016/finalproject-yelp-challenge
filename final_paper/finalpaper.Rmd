@@ -1034,19 +1034,19 @@ The Berkeley census 2010 data was obtained from three separate data sets, as pre
 Figure 5 below provides a map of the location information of the Berkeley police stop data mapped by location. We have excluded some observations on the outskirts of Berkeley in order to zoom in to the street level. Note that the `alpha` variable in `ggplot` is set to a small number in order to show the incidents that occur multiple times in the same place. In other words, the darker the point, the more police stops have occured at that location. 
 
 ```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center", fig.cap= "Berkeley Police Stops"}
-map_stop1
+map_stop1 # figure 5
 ```
 
 Another visualization of the stop data mapped in Figure 5 is the two-dimensional density map of the police stop data in the left pane of Figure 6. One of the most interesting aspects of the stop data in this image is that most police stops seem to be clustered west of UC Berkeley Campus in the Downtown area. This was contrary to what some of us might have thought before, which was that the area with the higher police stops would be the area with the higher population. To visualize the relationship between police stops and population density, consider the map in the right pane of Figure 6, which visualizes the percent population of Berkeley for each of the 33 census 2010 tracts. As you can see, the least densely populated area is the census 2010 tract containing the University of California. This makes sense because the area of this tract includes a campus and some student housing areas, where permanent residents are less likeley to live. One of the most population-dense areas is Southside, the portion of Berkeley directly south of the UC campus. Note that even though the tract including the Southside area is the most densely populated of the 33 census 2010 tracts in Berkeley, it is not the area where most police stops occur. 
 
 ```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center", fig.cap= "2015-2016 Police Stop Density (left) and 2010 Census Tract Population Density (right)"}
-grid.arrange(stopdensitymap4, popdenmap, ncol=2)
+grid.arrange(stopdensitymap4, popdenmap, ncol=2) # figure 6
 ```
 
 In order to break down the stop data further, we mapped the data by each of the disposition variables. We found race to be one of the most interesting variables. Consider the stop data density map faceted by race in Figure 7.
 
-```{r, fig.height = 3, fig.width = 12, echo=FALSE, warning = FALSE, message = FALSE, fig.align="center", fig.cap= "Police Stop density map VS. Population Density"}
-stopdensitymap3 
+```{r, fig.height = 3, fig.width = 12, echo=FALSE, warning = FALSE, message = FALSE, fig.align="center", fig.cap= "Police Stop Density Map by race"}
+stopdensitymap3 # figure 7
 ```
 
 Figure 7 seems to suggest that the group of people stopped the most in Berkeley are African Americans. For instance, in Centeral Berkeley, the stops for the races defined by the Berkeley Police Department as Asian, Hispanic, White, and Other seem comparatively lower than for Blacks in the same area. In order to consider the context of these stops, we considered the population distribution for these areas, shown in Figure 8. Note that the population density visualized by Figure 8 is conveyed by the range between white (0%) and red (100%). As you can see, White people make up a striking majority in all census 2010 tract areas, which seems to suggest the hypothesis that the population of Black people in Berkeley is being disproportionally affected by police stops.
