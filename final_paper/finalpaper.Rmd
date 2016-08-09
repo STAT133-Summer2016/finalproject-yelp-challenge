@@ -38,7 +38,6 @@ library(pander)
 library(formattable)
 library(pander)
 library(extrafont)
-setwd("~/Desktop/Stats R/PROJECT/finaldraftfiles")
 ```
 
 
@@ -51,7 +50,7 @@ setwd("~/Desktop/Stats R/PROJECT/finaldraftfiles")
 
 
 ############################ Police Stop Data ###########################
-stops <- read_csv("clean_data/StopData_clean.csv")
+stops <- read_csv("../clean_data/StopData_clean.csv")
 
 stops$Gender<- stops$Gender %>% 
   str_replace("F", "Female") %>% 
@@ -65,7 +64,7 @@ stops$AgeRange<- stops$AgeRange %>%
   
 
 ########################### arrest data ###########################
-arrest <- read_csv("raw_data/Berkeley_PD_Log_-_Arrests.csv")
+arrest <- read_csv("../raw_data/Berkeley_PD_Log_-_Arrests.csv")
 
 arrest$Age <- as.integer(arrest$Age)
 arrest$Age[arrest$Age<18] <- "0-18"
@@ -75,7 +74,7 @@ arrest$Age[arrest$Age>=40] <- "40+"
 arrest$Age <- as.factor(arrest$Age)
 
 ############################ jail data ###########################
-jail <- read.csv("raw_data/Berkeley_PD_Log_-_Jail_Bookings.csv")
+jail <- read.csv("../raw_data/Berkeley_PD_Log_-_Jail_Bookings.csv")
 
 jail$Age <- as.integer(jail$Age)
 jail$Age[jail$Age<20] <- "0-19"
@@ -85,9 +84,9 @@ jail$Age[jail$Age>=40] <- "40+"
 jail$Age <- as.factor(jail$Age)
 
 ############################ Census 2010 Data by Polygonal Tract Number ###########################
-berkcensus2010 <- read_csv("clean_data/berk_census2010_clean.csv")
+berkcensus2010 <- read_csv("../clean_data/census2010tractpop_clean.csv")
 
-census <- read.csv("raw_data/Census_Data_2000_And_2010.csv")
+census <- read.csv("../raw_data/Census_Data_2000_And_2010.csv")
 census2010 <- census[census$Year==2010,]
 totalpop <- census2010[1,]$Amount
 
@@ -127,10 +126,10 @@ names(age) <- c("Description", "Counts")
 
 
 ################## Census 2010 Data by Polygonal Tract Number, ready for mapping #################
-berkcensus2010map <- readRDS("clean_data/berk_census2010_mapdata.rds")
+berkcensus2010map <- readRDS("../clean_data/berk_census2010_mapdata.rds")
 
 ############################ Police Calls for service ############################ 
-callservice <- readRDS("clean_data/CallsForService.rds")
+callservice <- readRDS("../clean_data/CallsForService.rds")
 
 callservice<- callservice %>% 
   mutate(latlong= 
@@ -152,7 +151,7 @@ callservice$long <- as.numeric(callservice$long)
 
 
 #############################  Tables to use in paper ############################ 
-tables <- readRDS("clean_data/Tables_AgeSexRacePopStop.rds")
+tables <- readRDS("../clean_data/Tables_AgeSexRacePopStop.rds")
 ss <- as.data.frame(tables[5]) # stop data by race proportional to population
 pop1 <- as.data.frame(tables[4]) # census data population count table.
 race <- as.data.frame(tables[3]) # race population count
@@ -161,10 +160,10 @@ age <- as.data.frame(tables[1]) # age population count
 
 
 
-dataframelist <- readRDS("clean_Data/StopData_tbls.rds")
+dataframelist <- readRDS("../clean_Data/StopData_tbls.rds")
 table1 <- data.frame(dataframelist[1])
-table2 <- data.frame(dataframelist[2])   #Enforcement
-table3 <- data.frame(dataframelist[3])   #Enforcement
+table2 <- data.frame(dataframelist[2])  
+table3 <- data.frame(dataframelist[3])  
 
 
 ```
@@ -487,7 +486,7 @@ bargraph1 <- ggplot(per,
             size=5,
             colour= "#000000") +
   scale_y_continuous(labels=percent, limits = c(0,1)) +
-  labs(title = "The percentage of berkeley \nbeing stopped (%)",
+  labs(title = "Percent Stopped",
        x = "Race",
        y = "Percent stopped")+
   theme(axis.line = element_line(size=1, colour = "black"), 
@@ -510,7 +509,7 @@ bargraph2 <- ggplot(per,
             size=5,
             colour= "#000000") +
   scale_y_continuous(labels=percent, limits = c(0,1)) +
-  labs(title = "The percentage of population \nbeing stopped (%)",
+  labs(title = "Percent Population Stopped",
        x = "Race",
        y = "Percent stopped")+
   theme(axis.line = element_line(size=1, colour = "black"), 
@@ -811,44 +810,44 @@ histogram_stoptime1 <- ggplot(stops,
 
 ```{r, echo=FALSE, include = FALSE, message=FALSE, warning = FALSE}
 
-test <-read_csv("clean_data/enforcement_race.csv")
+table3$Percent.Stopped <- percent(table3$Percent.Stopped)
 
-map_enforcement <- ggplot(test)+ 
+
+map_enforcement <- ggplot(table3)+ 
   geom_bar(aes(x=Race,
-               y=percentage,
+               y=Percent.Stopped,
                fill = Race),
            stat = "identity") +
   scale_fill_manual(values=c("#FFCC00","#E1B378","#5F9EA0","#66FFCC","#40B8D0"))+
-  facet_grid(~Enforcement)+
-  geom_text(aes(x=Race,
-               y=percentage,
-               label = paste0(percentage*100,"%")), 
-            size=4,
-            colour= "#000000")+
-  scale_y_continuous(labels=percent, limits = c(0,1)) +
-  labs(title = "Percent Stopped by Enforcement Type and Race",
+  scale_y_continuous(limits = c(0,1), labels = c("0%", "25%", "50%", "75%", "100%")) +
+  labs(title = "Arrested Individuals, by Race",
        x = "Race",
-       y = "Percentage") +
+       y = "Percent of Arrested") +
+    geom_text(aes(x=Race,
+               y=Percent.Stopped,
+               label = paste0(Percent.Stopped)), 
+            size=5,
+            colour= "#000000")+
   scale_x_discrete(labels = function(x) str_wrap(x, width = 5))+
   theme(axis.line = element_line(size=1, colour = "black"), 
-        panel.grid.major = element_line(colour = "#d3d3d3"), panel.grid.minor = element_blank(), 
+        panel.grid.major = element_line(colour = "#d3d3d3"), panel.grid.minor = element_blank(),
         panel.border = element_blank(), panel.background = element_blank()) + 
   theme(plot.title = element_text(size = 14, family = "Georgia", face = "bold"), 
         text=element_text(family="Times New Roman", size = 13),
         axis.text.x=element_text(colour="black", size = 8), 
         axis.text.y=element_text(colour="black", size = 8))+
-  guides(fill = FALSE) 
-
+  guides(fill = FALSE)
+#map_enforcement
 
 
 
 ```
 
 
-```{r, echo=FALSE, include = FALSE, message=FALSE, warning = FALSE}
+```{r, echo=FALSE, include = FALSE, message=FALSE, warning = FALSE, eval = F}
 
 
-race_hour <- read.csv("clean_data/race_hour.csv")
+race_hour <- read.csv("../clean_data/race_hour.csv")
 stop_percentage3 <- ggplot(race_hour, aes(x = Hour, fill = Race)) + 
   geom_bar(aes(y = percentage), stat="identity") +
   labs(title = "Probability of BPD stop for \na specific race in a specific hour",
@@ -872,9 +871,9 @@ stop_percentage3 <- ggplot(race_hour, aes(x = Hour, fill = Race)) +
 ```
 
 
-```{r, echo=FALSE, include = FALSE, message=FALSE, warning = FALSE}
+```{r, echo=FALSE, include = FALSE, message=FALSE, warning = FALSE, eval = F}
 
-age_hour <- read.csv("clean_data/age_hour.csv")
+age_hour <- read.csv("../clean_data/age_hour.csv")
 
 stop_percentage2 <- ggplot(age_hour , aes(x = Hour, fill = AgeRange)) + 
   geom_bar(aes(y = percentage), stat="identity") +
@@ -925,7 +924,7 @@ At the end of the cleaning process, the stop data was whittled down from 16,255 
 
 ###__Berkeley Arrest and Jail Bookings Cleaning Process__
 
-The number of observations available for the arrest data set and the jail data set were significantly smaller than the number of observations for the stop data set. The arrest data had 205 observations and the jail bookings data had 223. These observations were obtained by the Berkeley Police department over a 3-month period, rather than a 6-month period. They both contained similar variables, including a case/arrest/booking number, date and time, type, and subject information (name, race, sex, D.O.B., age, height, weight, hair, eyes, and occupation) and statute information (type, description, agency, and disposition). Cleaning required the dates and times to be put into `lubridate` format, and we also created an hour column to consider the number of occurences during each hour of the day. 
+The number of observations available for the arrest data set and the jail data set were significantly smaller than the number of observations for the stop data set. The arrest data had 205 observations and the jail bookings data had 223. These observations were obtained by the Berkeley Police department over a 3-month period, rather than a 6-month period (as was for the stop data). They both contained similar variables, including a case/arrest/booking number, date and time, type, and subject information (name, race, sex, D.O.B., age, height, weight, hair, eyes, and occupation) and statute information (type, description, agency, and disposition). Cleaning this data set also required the dates and times to be put into `lubridate` format, and we also created an hour column to consider the number of occurences during each hour of the day. 
 
 ![](arrest_data_header.png)
 
@@ -934,9 +933,7 @@ The number of observations available for the arrest data set and the jail data s
 
 ###__Berkeley Census 2010 Data Cleaning Process__
 
-
-
-The Berkeley census 2010 data was utilized from 3 different data sets. We first considered the summary information provided by the city website in an excel document, which was easy to clean and use in our analysis, since the information was already summarized. However, in order to understand the demographics of populations within Berkeley in a way that could provide a spatial visualization, we needed to use the census 2010 Alameda County population tract data, which provided the population and race data by tract number. For example, there are 33 census 2010 tracts within the city of Berkeley. Finally, to get the map information of these 33 tracts, we also needed the census 2010 Berkeley tract polygons shapefile. After converting the shapefile to a dataframe and changing the coordinate system to the one used by Google, we were able to `left_join` this new polygonal mapping data frame to the data frame containing the population information for the Berkeley tracts by the unique census 2010 tract number. Combining the tract map information with the tract population information gave us a data frame containing population information for 33 different areas that we could represent spatially. The goal was to visualize the population density of different groups of people within the city by neighborhood, which provided us with a context for the stop data.
+The Berkeley census 2010 data was utilized from 3 different data sets. We first considered the summary information provided by the city website in an excel document, which was easy to clean and use in our analysis, since the information was already summarized. However, in order to understand the demographics of populations within Berkeley in a way that could provide a spatial visualization, we needed to use the census 2010 Alameda County population tract data, which provided the population and race data by tract number. For example, there are 33 census 2010 tracts within the city of Berkeley. Finally, to get the map information of these 33 tracts, we also needed the census 2010 Berkeley tract polygons shapefile. After converting the shapefile to a dataframe and changing the coordinate system to the one used by Google (this was done using the `readOGR` function from the library `rgdal`), we were able to `left_join` this new polygonal mapping data frame to the data frame containing the population information for the Berkeley tracts by the unique census 2010 tract number. Combining the tract map information with the tract population information gave us a data frame containing population information for 33 different areas that we could represent spatially. The goal was to visualize the population density of different groups of people within the city by neighborhood, which provided us with a context for the sptatially visualized stop data.
 
 ![](census_data_header.png)
 
@@ -944,11 +941,11 @@ The Berkeley census 2010 data was utilized from 3 different data sets. We first 
 
 Below is the stop data points mapped by location. We have excluded some observations on the outskirts of Berkeley in order to zoom in to the street level. Note that the `alpha` variable in `ggplot` is set to a small number in order to show the incidents that occur multiple times in the same place. In other words, the darker the point, the more police stops have occured at that location. 
 
-```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center"}
+```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center", eval = F}
 grid.arrange(map_stop1,map_callservice1, ncol = 2)
 ```
 
-A more interesting visualization of this data is the following two-dimensional density map of the police stop data, displayed below. One of the most interesting aspects of the stop data in this image is that most police stops seem to be clustered west of UC Berkeley Campus in the Downtown area. This was contrary to what some of us might have thought before, which was that the area with the higher police stops would be corrolated to the area with the higher population. As you will see, however, this is not necessarily true. 
+Another visualization of the stop data mapped above is the following two-dimensional density map of the police stop data, displayed below. One of the most interesting aspects of the stop data in this image is that most police stops seem to be clustered west of UC Berkeley Campus in the Downtown area. This was contrary to what some of us might have thought before, which was that the area with the higher police stops would be the area with the higher population. As you will see, however, this is not necessarily true. 
 
 ```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center"}
 grid.arrange(stopdensitymap4, popdenmap, ncol=2)
@@ -962,7 +959,7 @@ In order to break down the stop data further, we mapped the data by each of the 
 stopdensitymap3 
 ```
 
-The image above seems to imply that the group of people stopped the most are African Americans in Berkeley. For instance, in Centeral Berkeley, the stops for the races defined by the Berkeley Police Department as Asian, Hispanic, White, and Other seem comparatively lower than for Blacks in the same area. In order to consider the context of these stop incidents, we considered the population distribution for these areas, as shown below. Note that the population density visualized by the following map is conveyed by the range between white (0%) and red (100%). As you can see, White people make up a striking majority in all census 2010 tract areas, which seems to imply that the population of Black people in Berkeley is being disproportionally affected by police stops.
+The image above seems to imply that the group of people stopped the most are African Americans in Berkeley. For instance, in Centeral Berkeley, the stops for the races defined by the Berkeley Police Department as Asian, Hispanic, White, and Other seem comparatively lower than for Blacks in the same area. In order to consider the context of these stop incidents, we considered the population distribution for these areas, as shown below. Note that the population density visualized by the following map is conveyed by the range between white (0%) and red (100%). As you can see, White people make up a striking majority in all census 2010 tract areas, which seems to suggest the hypothesis that the population of Black people in Berkeley is being disproportionally affected by police stops.
 
 ```{r, warning = FALSE, echo = FALSE,  fig.width = 15, fig.height = 3, message = FALSE, fig.align = "center"}
 grid.arrange(a2,black2,h2,o2,w2, ncol = 5) # print population density by race.
@@ -978,14 +975,6 @@ pander(ss) # table for stop data percentages by race relative to population
 A visualization of the groups of people stopped in proportion to their population is provided by the bar chart below.
 ```{r, message = F, echo = FALSE, fig.width = 10, fig.height = 5, warning = FALSE, fig.align="center"}
 grid.arrange(bargraph1, bargraph2, ncol = 2)
-```
-
-
-!!!!!!!!!!!!!!!!!!!!!INCLUDE BAR GRAPH HERE of % race stopped vs. percent race population, as described above!!!!!!!!!!!!!!!!!!!!!!!!
-
-```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.align = "center"}
-
-grid.arrange(p1, p2,ncol=2)
 ```
 
 Another disposition variable we found to be of interest was the enforcement variable, which has the options Arrest, Citation, Warning, and Other. We were interested to see how these enforcements were applied to different groups of people. Consider the map below, which appears to suggest that the enforcement of arrest is applied differently to different groups of people. 

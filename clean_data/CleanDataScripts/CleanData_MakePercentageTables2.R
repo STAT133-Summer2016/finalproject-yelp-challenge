@@ -58,6 +58,22 @@ tbl_summary <- tbl_summary %>%
   select(-Stopped, -Race.Population)
 tbl_summary
 
+# enforcement = arrest by race
+tbl_arrest <- mergedf %>%  
+  subset(Enforcement == "Arrest") %>%
+  group_by(Race) %>%
+  summarise(Stopped=n() ) %>%
+  mutate(Percent.Stopped = Stopped/nrow(subset(mergedf, Enforcement == "Arrest"))) 
+tbl_arrest
+temp <- c(sum(bpop2$Asian), sum(bpop2$Black), sum(bpop2$Hispanic), sum(bpop2$Other), sum(bpop2$White) )
+tbl_arrest$Race.Population = temp
+tbl_arrest$Percent.Race.Stopped = tbl_arrest$Stopped/tbl_arrest$Race.Population
+tbl_arrest
+
+tbl_arrest <- tbl_arrest %>%
+  select(-Stopped, -Race.Population)
+tbl_arrest
+
 # percent reason:
 
 tbl_reason <- mergedf %>%  
@@ -113,15 +129,15 @@ tbl_enforcement$Percent.White <- tbl_enforcement_W$Percent.White
 tbl_enforcement
 rm(tbl_enforcement_W)
 
-# # save the resulting 3 data frames:
-# saveRDS(list(tbl_summary, tbl_reason, tbl_enforcement), file = file_saveAs)
-# 
-# # how to read in the data: 
-# 
-# dataframelist <- readRDS(file = file_saveAs)
-# 
-# # how to exract the data frames from the list:
-# table1 <- data.frame(dataframelist[1])
-# table2 <- data.frame(dataframelist[2])
-# table3 <- data.frame(dataframelist[3])
+# save the resulting 3 data frames:
+saveRDS(list(tbl_summary, tbl_reason, tbl_arrest), file = file_saveAs)
+
+# how to read in the data:
+
+dataframelist <- readRDS(file = file_saveAs)
+
+# how to exract the data frames from the list:
+table1 <- data.frame(dataframelist[1])
+table2 <- data.frame(dataframelist[2])
+table3 <- data.frame(dataframelist[3])
 
