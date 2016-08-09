@@ -795,6 +795,7 @@ histogram_jail1 <- ggplot(na.omit(jail))+
         axis.text.y=element_text(colour="black", size = 10))
 
 # histogram of stop data by race and hour:
+
 histogram_stoptime1 <- ggplot(stops, 
                               aes(x = Hour, 
                                   fill = Race)) + 
@@ -882,7 +883,7 @@ age_hour <- read.csv("../clean_data/age_hour.csv")
 
 stop_percentage2 <- ggplot(age_hour , aes(x = Hour, fill = AgeRange)) + 
   geom_bar(aes(y = percentage), stat="identity") +
-  facet_wrap(~AgeRange)+
+  facet_wrap(~AgeRange, nrow = 1)+
 labs(title = "Probability of BPD stop for a \nspecific age range in a specific hour",
        x= "Hour",
        y = "Density") +
@@ -960,7 +961,7 @@ stop_by_percentage_age <- stop_by_percentage_age[stop_by_percentage_age$Reason !
 
 stop_arrest_age <- ggplot(stop_by_percentage_age, aes(x = AgeRange, fill = AgeRange)) + 
   geom_bar(aes(y = percentage), stat="identity") +
-  facet_wrap(~Reason)+
+  facet_wrap(~Reason, nrow=1)+
   labs(title = "Probability of BPD stop for a \nspecific age range in a specific reason",
        x= "Hour",
        y = "Density") +
@@ -1059,11 +1060,11 @@ grid.arrange(a2,black2,h2,o2,w2, ncol = 5) # print population density by race.
 
 Now, with the population percentages of each group in hand, we were able to compare the results of our stop data analysis to the percent population of each group. The `Percent Stopped` column in the table below represents the percent of each group compared to the total number of people stopped, while the `Percent Population Stopped` column represents the proportion of people in each group stopped relative to the population of that group living in Berkeley. Even though the people stopped by police are not necessarily Berkeley residents, the `Percent Population Stopped` gives us some perspective of which groups of people in Berkeley might be more likely to be affected by police stops than others. 
 
-## PLEASE CHANGE THE TABLE 
+## PLEASE mention that we delete tHE TABLE 
 #### LOVE JENNY 
 
 A visualization of the groups of people stopped in proportion to their population is provided by the bar chart below.
-```{r, message = F, echo = FALSE, fig.width = 10, fig.height = 5, warning = FALSE, fig.align="center"}
+```{r, message = F, echo = FALSE, fig.width = 10, fig.height = 3, warning = FALSE, fig.align="center"}
 grid.arrange(bargraph1, bargraph2, ncol = 2)
 ```
 
@@ -1080,86 +1081,74 @@ map_enforcement
 
 A third interesting disposition variable was the reason disposition, which indicates the reason for the police stop in each case. The reasons available for police stops are Investigation, Other, Probation/Parole, Reasonable Suspicion, Traffic, and Wanted. One way we explored the data initially was to see how these reasons affected different groups of people, and we would recommend exploring this idea in depth at a later time. Due to the length and scope of this paper however, we decided to end our discussion of the stop data by showing that most of the Berkeley police stops are traffic stops. Mapping the coordinates seems to suggest this fact, and it is confirmed when analyzing the data. 
 
-```{r, fig.height = 10, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r, fig.height = 5, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 map_reasons1
 ```
 
-!!!!!!!!!!!!!!!!!!!!!INCLUDE BAR GRAPH & TABLE OF POLICE STOPS BY REASON HERE (Use percentage, not count) !!!!!!!!!!!!!!!!!!!!!!!!
+## PLEASE EDIT THE ANALYSIS 
+###  LOVE JENNY
 
-```{r, fig.height = 10, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+We also analyzed the preference of Berkeley PD when arresting people. We calculated the conditional probability of arrested given a specific reasion and given a specific race/ age range/ gender. That is to say, we calculated the probability of a person will be arrested by Berkeley PD if he was stopped by a specific reason and was of a specific race/ age range/ gender.
+
+```{r, fig.height = 3, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_arrest
 ```
+## PLEASE EDIT THE ANALYSIS 
+###  LOVE JENNY 
+From the above plots, we can tell that the probability of arrested in a stop with the reason Traffic is much lower than other reasons. The average conditional probability of arrested given reason is traffic is 1.58%. Additionally, the probability of arrested in a stop with the reason Wanted is much higher than other reason. The average conditional probability of arrested given reason is wanted is 33.33%. Lastly, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole and race Asian is 75%, which is much higher than that of any other race. Asian people is much more liable to be arrested by Berkeley Police Department during Probation or Parole if stopped by the BPD.
 
-###  Findings 
-1. The probability of arrested in a stop with the reason Traffic is much lower than other reasons. The average conditional probability of arrested given reason is traffic is 1.58%.
-
-2. The probability of arrested in a stop with the reason Wanted is much higher than other reason. The average conditional probability of arrested given reason is wanted is 33.33%.
-
-3. An interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole and race Asian is 75%, which is much higher than that of any other race. Asian people is much more liable to be arrested by Berkeley Police Department during Probation or Parole if stopped by the BPD.
-
-
-```{r, fig.height = 10, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
-stop_percentage3
-```
-###  Findings 
-1. Black people are obviously liable to commit incidents at night. The average ratio of black people to all people stoped by the Berkeley Police Department at night is about 40%.
-
-2. White people are obviously liable to commit incidents in the daytime. The average ratio of white people to all people stoped by the Berkeley Police Deparment during the day is about 45%.
-
-3. Ratio of incidents commited by Asian people, Hispanic people and other people fluctuate during the daytime and the night, with an average ratio of 8%, 11% and 9% respectively.
-
-```{r, fig.height = 10, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
-stop_percentage2 
-```
-### Findings 
-1. People aged from 18 to 29 are obviously liable to commit incidents at night. The average ratio of people aged from 18 to 29 to all people stoped by the Berkeley Police Department at night is greater than 40%.
-
-2. People aged greater than 40 are obviously liable to commit incidents in the daytime. The average ratio of people aged greater than 40 to all people stoped by the Berkeley Police Deparment during the day is greater than 40%.
-
-3. Ratio of incidents commited by people aged between 0 and 18 and people aged from 30 to 39 fluctuates during the daytime and the night, with an average ratio of 2.5% and 25% respectively.
-
-
-
-```{r, fig.height = 10, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r, fig.height = 3, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_arrest_age
 ```
-### Jenny Findings 
-1. Similar to the conclusions above, the probability of arrested in a stop with the reason Traffic is the lowest and wanted is the highest.
 
-2. Again similar to the conclusion above, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole and age range 0-18 is 67.56%, which is much higher than that of any other age range.
+## FINDINGS
+###  LOVE JENNY 
+Similar to the conclusions above, the probability of arrested in a stop with the reason Traffic is the lowest and wanted is the highest. Again similar to the conclusion above, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole and age range 0-18 is 67.56%, which is much higher than that of any other age range. Lastly, the conditional probability of arrested given person involved aged from 0 to 18 in a stop given any reason is more than that of given person with any other age range. Therefore, in a stop, teenagers is more liable to be arrested by Berkeley Police Department.
 
-3. The conditional probability of arrested given person involved aged from 0 to 18 in a stop given any reason is more than that of given person with any other age range. Therefore, in a stop, teenagers is more liable to be arrested by Berkeley Police Department.
-
-
-```{r, fig.height = 10, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
-stop_arrest_gender 
+```{r, fig.height = 3, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+stop_arrest_gender
 ```
-### Jenny Findings 
-1. Similar to the conclusions above, the probability of arrested in a stop with the reason Traffic is the lowest and wanted is the highest.
 
-2. Again similar to the conclusion above, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole of female is 50.00%, which is much higher than that of male, which is 20.11%.
+## FINDINGS
+####  LOVE JENNY 
+Similar to the conclusions above, the probability of arrested in a stop with the reason Traffic is the lowest and wanted is the highest. Again similar to the conclusion above, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole of female is 50.00%, which is much higher than that of male, which is 20.11%.
 
 
 
-```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.height = 5, fig.width = 10, fig.align="center"}
-#### INCLUDE BAR GRAPH & TABLE OF POLICE STOPS BY REASON HERE(Use percentage, not count)!!!!!!!!!!!!!!!!!!!!!!!!
-grid.arrange(bararrest, barjail, ncol = 2)
+```{r, fig.height = 3, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+stop_percentage3
 ```
+##  Findings 
+#### LOVE JENNY
+Black people are obviously liable to commit incidents at night. The average ratio of black people to all people stoped by the Berkeley Police Department at night is about 40%. On the other hand, white people are obviously liable to commit incidents in the daytime. The average ratio of white people to all people stoped by the Berkeley Police Deparment during the day is about 45%. While the Ratio of incidents commited by Asian people, Hispanic people and other people fluctuate during the daytime and the night, with an average ratio of 8%, 11% and 9% respectively.
+
+```{r, fig.height = 3, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+stop_percentage2
+```
+
+## Findings 
+#### LOVE JENNY  
+People aged from 18 to 29 are obviously liable to commit incidents at night. The average ratio of people aged from 18 to 29 to all people stoped by the Berkeley Police Department at night is greater than 40%. People aged greater than 40 are obviously liable to commit incidents in the daytime. The average ratio of people aged greater than 40 to all people stoped by the Berkeley Police Deparment during the day is greater than 40%. While Ratio of incidents commited by people aged between 0 and 18 and people aged from 30 to 39 fluctuates during the daytime and the night, with an average ratio of 2.5% and 25% respectively.
 
 ## Berkeley Police Jail and Arrest Data Set Analysis
 
 Moving on from the stop data, we considered the available jail data and arrest data for the city of Berkeley. Two of the most interesting variables to consider in these two data sets were race and age. We decided the examine the percent of people arrested and the percent of people jailed in Berkeley by both age and race. Below is a visualization. Note that the following percentages are related to the number of total people jailed or the number of people arrested, respectively, and we have not adjusted the data relative to the population of Berkeley. 
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width = 12, fig.height=3, fig.align="center"}
-histogram_jail1
-histogram_arrest1
-# I decided to take these out of the multi.plot function because I was trying to adjust the format a certain way, I'm sorry!
+
+```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.height = 3, fig.width = 10, fig.align="center"}
+grid.arrange(bararrest, barjail, ncol = 2)
 ```
+
 
 One of the most interesting things about the above histograms is the number of black people arrested in Berkeley over the past 3 month period is higher than the numbers of people arrested in Berkeley over the past 3 months for other groups of people. Note that this statement is even stronger for young black people. Even though most of the population in Berkeley is white, most of the people recently arrested are black.
 
 
 ## Problems
+
+
+## PLEASE MENTION THE HOMELESS PEOPLE. 
+#### LOVE JENNY  
+
 
 The data sets provided by the police (stops, arrests, and jail bookings) have several problems. First, concerning the methods for recording race, especially for police stops that do not result in an arrest, it seems unreasonable to assume that racial information would have been provided by the individual stopped. It seems more likely that police officers are judging the race of the people they stop during stops for themselves in order to record it in the system that ultimately provided us with that data set. The problem with that method of data collection is that it opens up an opportunity for error; for example, if the data is recorded by the officers through their judgment of the individuals physical appearance, they may unknowingly classify that individual as a race that the individual does not identify themselves as. Even though there doesn't seem to be a means to get around this problem with the actual method of collecting racial data for police stops, it is still important to address it as something that could induce error into a statistical analysis. 
 
