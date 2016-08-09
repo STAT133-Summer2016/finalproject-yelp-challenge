@@ -824,7 +824,7 @@ map_enforcement <- ggplot(table3)+
            stat = "identity") +
   scale_fill_manual(values=c("#FFCC00","#E1B378","#5F9EA0","#66FFCC","#40B8D0"))+
   scale_y_continuous(limits = c(0,1), labels = c("0%", "25%", "50%", "75%", "100%")) +
-  labs(title = "Arrested Individuals, by Race",
+  labs(title = "Police Stops Leading to Arrests",
        x = "Race",
        y = "Percent of Arrested") +
     geom_text(aes(x=Race,
@@ -1033,11 +1033,15 @@ Below is the stop data points mapped by location. We have excluded some observat
 grid.arrange(map_stop1,map_callservice1, ncol = 2)
 ```
 
+## PLEASE COMPARE THIS TO THE CALLS FOR SERVICE DATA  
+### LOVE JENNY 
+
 Another visualization of the stop data mapped above is the following two-dimensional density map of the police stop data, displayed below. One of the most interesting aspects of the stop data in this image is that most police stops seem to be clustered west of UC Berkeley Campus in the Downtown area. This was contrary to what some of us might have thought before, which was that the area with the higher police stops would be the area with the higher population. As you will see, however, this is not necessarily true. 
 
 ```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center"}
 grid.arrange(stopdensitymap4, popdenmap, ncol=2)
 ```
+
 
 To visualize the relationship between police stops and population density, consider the following map, which visualizes the percent population of Berkeley for each of the 33 census 2010 tracts. As you can see, the least densely populated area is the census 2010 tract containing the University of California. This makes sense because the area of this tract includes a campus and some student housing areas, where permanent residents are less likeley to live. One of the most population-dense areas is Southside, the portion of Berkeley directly south of the UC campus. Note that even though the tract including the Southside area is the most densely populated of the 33 census 2010 tracts in Berkeley, it is not the area where most police stops occur. 
 
@@ -1055,10 +1059,8 @@ grid.arrange(a2,black2,h2,o2,w2, ncol = 5) # print population density by race.
 
 Now, with the population percentages of each group in hand, we were able to compare the results of our stop data analysis to the percent population of each group. The `Percent Stopped` column in the table below represents the percent of each group compared to the total number of people stopped, while the `Percent Population Stopped` column represents the proportion of people in each group stopped relative to the population of that group living in Berkeley. Even though the people stopped by police are not necessarily Berkeley residents, the `Percent Population Stopped` gives us some perspective of which groups of people in Berkeley might be more likely to be affected by police stops than others. 
 
-```{r, message = F, echo = FALSE, warning = FALSE, fig.align="center"}
-panderOptions("digits", 3)
-pander(ss) # table for stop data percentages by race relative to population
-```
+## PLEASE CHANGE THE TABLE 
+#### LOVE JENNY 
 
 A visualization of the groups of people stopped in proportion to their population is provided by the bar chart below.
 ```{r, message = F, echo = FALSE, fig.width = 10, fig.height = 5, warning = FALSE, fig.align="center"}
@@ -1088,7 +1090,7 @@ map_reasons1
 stop_arrest
 ```
 
-### Jenny Findings 
+###  Findings 
 1. The probability of arrested in a stop with the reason Traffic is much lower than other reasons. The average conditional probability of arrested given reason is traffic is 1.58%.
 
 2. The probability of arrested in a stop with the reason Wanted is much higher than other reason. The average conditional probability of arrested given reason is wanted is 33.33%.
@@ -1099,7 +1101,7 @@ stop_arrest
 ```{r, fig.height = 10, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_percentage3
 ```
-### Jenny Findings 
+###  Findings 
 1. Black people are obviously liable to commit incidents at night. The average ratio of black people to all people stoped by the Berkeley Police Department at night is about 40%.
 
 2. White people are obviously liable to commit incidents in the daytime. The average ratio of white people to all people stoped by the Berkeley Police Deparment during the day is about 45%.
@@ -1109,7 +1111,7 @@ stop_percentage3
 ```{r, fig.height = 10, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_percentage2 
 ```
-### Jenny Findings 
+### Findings 
 1. People aged from 18 to 29 are obviously liable to commit incidents at night. The average ratio of people aged from 18 to 29 to all people stoped by the Berkeley Police Department at night is greater than 40%.
 
 2. People aged greater than 40 are obviously liable to commit incidents in the daytime. The average ratio of people aged greater than 40 to all people stoped by the Berkeley Police Deparment during the day is greater than 40%.
@@ -1156,15 +1158,6 @@ histogram_arrest1
 
 One of the most interesting things about the above histograms is the number of black people arrested in Berkeley over the past 3 month period is higher than the numbers of people arrested in Berkeley over the past 3 months for other groups of people. Note that this statement is even stronger for young black people. Even though most of the population in Berkeley is white, most of the people recently arrested are black.
 
-Another idea we had was to visualize the arrest data for each community by hour. 
-!!!!!!!!!!!PLEASE FIX LABEL SO THAT IT IS PERCENT ARRESTED, NOT COUNT!!!! ALSO, PLEASE DISPLAY A SMALL TABLE OF THIS DATA FOLLOWING THE HISTOGRAM.!!!!!!!!!!!!!
-
-```{r, echo=FALSE, warning = FALSE, message = FALSE, fig.width = 12, fig.height=3, fig.align = "center"}
-histogram_stoptime1
-#!!!!!!!!!!!PLEASE FIX LABEL SO THAT IT IS PERCENT ARRESTED, NOT COUNT!!!! ALSO, PLEASE DISPLAY A SMALL TABLE OF THIS DATA FOLLOWING THE HISTOGRAM.!!!!!!!!!!!!!
-```
-
-!!!!!!!!!!!!!! 1-2 sentence: ANALYZE FINDINGS FROM chart & TABLE ABOVE HERE!!!!!!!!!!
 
 ## Problems
 
@@ -1189,8 +1182,8 @@ The goal of this paper was to investigate and visualize Berkeley Police interact
 * [Jail Bookings (250)](https://data.cityofberkeley.info/Public-Safety/Berkeley-PD-Log-Jail-Bookings/7ykt-c32j)
 * [Calls for Service (4,000)](https://data.cityofberkeley.info/Public-Safety/Berkeley-PD-Calls-for-Service/k2nh-s5h5)
 * [Berkeley Census Data](https://data.cityofberkeley.info/Demographics/Census-Data-2000-And-2010/bnkq-f2ge)
-*[Census 2010 Population and race data by county tract polygons](http://www.bayareacensus.ca.gov/small/small.htm)
-*[Berkeley Census 2010 Tract Polygons](https://data.cityofberkeley.info/Demographics/Census-Tract-Polygons-2010/peq3-2arw)
+* [Census 2010 Population and race data by county tract polygons](http://www.bayareacensus.ca.gov/small/small.htm)
+* [Berkeley Census 2010 Tract Polygons](https://data.cityofberkeley.info/Demographics/Census-Tract-Polygons-2010/peq3-2arw)
 
 
 
