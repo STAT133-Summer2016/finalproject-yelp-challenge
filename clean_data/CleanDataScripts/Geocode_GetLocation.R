@@ -1,19 +1,16 @@
-###################################################################################################################################
-## Title: STOP DATA LOCATION SCRIPT FOR BERKELEY, CA
-## Author: Rebecca Reus, STAT 133 Summer 2016, UC Berkeley
-## Information:
-## Uses part of Geocoding script for large list of addresses created by Shane Lynn, 10/10/2013 at http://www.r-bloggers.com/batch-geocoding-with-r-and-google-maps/
-## Police Stop Data source: https://data.cityofberkeley.info/
-###################################################################################################################################
+# Geocode_GetLocation.R
 
+# Author: Rebecca Reus
+# Note: I modified and built upon the geocode function written by 
+# Shane Lynn, 10/10/2013 at http://www.r-bloggers.com/batch-geocoding-with-r-and-google-maps/
 
-# Jenny WD:
-# setwd("~/Desktop/Stats R/PROJECT/finalproject_angry_ladies/Rebeccas_location_Code2")
+# Purpose:
+# 1. Do some preliminary data-tidying of the Berkeley Stop Data.
+# 2. Obtain the location coordinates from the string location through geolocation.
+# 3. Save temporary results as an RDS file when query limit is exhausted.
 
-###################################################################################################################################
-## LIBRARIES:
-## Before running, please make sure you have installed ALL of these packages:
-###################################################################################################################################
+# please make sure you have all of these installed before running:
+
 library(sp)
 library(ggmap)
 library(tidyr)
@@ -39,9 +36,11 @@ library(rgeos)
 ## DATA TIDYING:
 ###################################################################################################################################
 
-# Get the data from the file in your working directory:
-infile <- "StopData"
+# Get the data from the file in the raw data folder:
+infile <- "../../raw_data/StopData"
 data <- read.csv(paste0('./', infile, '.csv'))
+tempfilename_finaldf <- paste0( infile, '_temp_finaldf')
+tempfilename_finaldf_CSV <- "../../raw_data/StopData_w_Locations.csv"
 
 # Filter out the data that is not already in coordinate form (doesn't have longitude and latitude values):
 stop_df <- data %>%
@@ -310,12 +309,12 @@ points( finaldf$long, finaldf$lat, col="red", cex=.6 )
 ## SAVE THE DATA / PLAN FOR LATER:
 ####################################################################################################################################
 
-# WRITE finaldf to a file, if you would like to use the Location info at another time:
-write.csv( finaldf, file = "StopData_w_Locations.csv")
-tempfilename_finaldf <- paste0( infile, '_temp_finaldf')
-saveRDS( finaldf, tempfilename_finaldf )
-
-
 # Use this code to see how many rows left Google will allow you for today:
 geocodeQueryCheck()
+
+# WRITE finaldf to a file, if you would like to use the Location info at another time:
+# write.csv( finaldf, file = tempfilename_finaldf_CSV)
+# saveRDS( finaldf, tempfilename_finaldf )
+
+
 

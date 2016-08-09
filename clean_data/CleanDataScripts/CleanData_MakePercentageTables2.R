@@ -39,9 +39,9 @@ library(RColorBrewer)
 
 # data files:
 
-file_stops <- "../../clean_data/StopData_clean.csv" 
-file_tract_populations <- "../../clean_data/berk_census2010_clean.csv"
-file_saveAs <- "../../clean_data/StopData_tbls.rds" 
+file_stops <- "../StopData_clean.csv" 
+file_tract_populations <- "../census2010tractpop_clean.csv"
+file_saveAs <- "../StopData_tbls.rds" 
 mergedf <- read_csv(file = file_stops)
 bpop2 <- read_csv(file = file_tract_populations )
 
@@ -113,15 +113,15 @@ tbl_enforcement$Percent.White <- tbl_enforcement_W$Percent.White
 tbl_enforcement
 rm(tbl_enforcement_W)
 
-# save the resulting 3 data frames:
-saveRDS(list(tbl_summary, tbl_reason, tbl_enforcement), file = file_saveAs)
-
-# how to read in the data: 
-
-dataframelist <- readRDS(file = file_saveAs)
-
-# how to exract the data frames from the list:
-table1 <- data.frame(dataframelist[1])
-table2 <- data.frame(dataframelist[2])
-table3 <- data.frame(dataframelist[3])
+# # save the resulting 3 data frames:
+# saveRDS(list(tbl_summary, tbl_reason, tbl_enforcement), file = file_saveAs)
+# 
+# # how to read in the data: 
+# 
+# dataframelist <- readRDS(file = file_saveAs)
+# 
+# # how to exract the data frames from the list:
+# table1 <- data.frame(dataframelist[1])
+# table2 <- data.frame(dataframelist[2])
+# table3 <- data.frame(dataframelist[3])
 

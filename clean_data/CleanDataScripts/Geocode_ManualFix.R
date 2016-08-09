@@ -1,14 +1,12 @@
-# StopData_ManualFix.R
+# Geocode_ManualFix.R
 
-# Purpose: Use this file to manually change latitude and longitude errors by hand.
-#          Do NOT run this file unless you know EXACTLY which row you want to change, 
-#          since you must manually enter the row you want to change, and this file 
-#          updates that row in our temp file (the .rds file in this folder).
-# Author: Rebecca Reus, STAT 133 Group: The Angry Ladies, Summer 2016, UC Berkeley
+# Author: Rebecca Reus
 
-####################################################################################################
-
-#### IMPORTANT: ONLY RUN THIS CODE IF YOU ARE REBECCA: THIS IS FOR MANUAL FIXES! LET REBECCA FIX AT THE END.
+# Purpose: 
+# 1. Use this file to manually change latitude and longitude errors by hand.
+# 2. Do NOT run this file unless you know EXACTLY which row you want to change, 
+#    since you must manually enter the row you want to change, and this file 
+#    updates that row in our temp file (the .rds file in the raw data folder).
 
 ###################################################################################################################################
 ## LIBRARIES:
@@ -34,6 +32,16 @@ library(tmap)
 library(sp)
 library(rgdal)
 library(rgeos)
+
+# define file names:
+
+file_tempGeocoded <- '../../raw_data/StopData_temp_geocoded.rds' # contains geolocation information.
+file_finaldf <- '../../raw_data/StopData_finaldf.rds' # contains the stop data with geolocation information.
+
+# Read in the data:
+geocoded <- readRDS( file_tempGeocoded )
+finaldf <- readRDS( file_finaldf )
+
 
 ####################################################################################################################################
 ## CREATE SOME FUNCTIONS:
@@ -86,9 +94,6 @@ getGeoDetails <- function( address ) {
 ## READ THE DATA IN:
 ####################################################################################################################################
 
-# Read in the data:
-geocoded <- readRDS( 'StopData_temp_geocoded.rds' )
-finaldf <- readRDS( 'StopData_finaldf.rds' )
 
 ####################################################################################################################################
 ## CHECK FOR OUTLIERS:
@@ -150,8 +155,8 @@ print(  "finaldf[ rn, ]: ")
 print( finaldf[ rn, ] )
 
 # Save all:
-saveRDS( finaldf, 'StopData_finaldf.rds' )
-saveRDS( geocoded, 'StopData_temp_geocoded.rds' )
+# saveRDS( finaldf, file_finaldf )
+# saveRDS( geocoded, file_tempGeocoded )
 
 ##################################################################################################
 ## OTHER PROBLEMS:
@@ -187,5 +192,5 @@ print(  "finaldf[ rn, ]: ")
 print( finaldf[ rn, ] )
 
 # Save all:
-saveRDS( finaldf, 'StopData_finaldf.rds' )
-saveRDS( geocoded, 'StopData_temp_geocoded.rds' )
+# saveRDS( finaldf, file_finaldf )
+# saveRDS( geocoded, file_tempGeocoded )

@@ -1,5 +1,12 @@
-# StopData_clean_merged_rds.R
-# Purpose: This script does some minor necessary cleaning to StopData_merged.rds data that was created by the location cleaning script.
+# CleanData_MergedRDSStopData.R
+
+# Author: Rebecca Reus
+
+# Purpose: 
+# 1. This script does some minor necessary cleaning to StopData_merged.rds data.
+
+# Notes:
+# StopData_merged.rds was created by the location cleaning script followed by the merging script.
 
 library(sp)
 library(ggmap)
@@ -16,8 +23,8 @@ library(rgdal)
 library(rgeos)
 
 # data file names:
-data_file <- "StopData_merged.rds" # we will be modifying this file.
-new_data_file <- "StopData_merged.rds"
+data_file <- "../../raw_data/StopData_merged.rds" # we will be modifying this file.
+new_data_file <- data_file # rewrite the exisiting file.
 
 # read in the data to modify:
 df <- readRDS( data_file )
@@ -45,7 +52,7 @@ df <- df %>%
 df$Emergency.Psych.Eval <- factor(df$Emergency.Psych.Eval)
 
 # save the changed data as a new RDS (RDS file saves more space than  CVS file):
-saveRDS(object = df, file = new_data_file )
+#saveRDS(object = df, file = new_data_file )
 
 # remove unecessary variables:
 rm(v)
