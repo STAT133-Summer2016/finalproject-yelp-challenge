@@ -75,7 +75,7 @@ stop_race <- stop_by %>%
 stop_race
 ```
 
-```{r, echo=FALSE, eval=FALSE}
+```{r, echo=FALSE}
 stop_race_total_table <- stop_by %>%
     group_by(Race) %>%
     summarise(totaLCount = n())
@@ -134,7 +134,7 @@ stop_day <- stop_by %>%
 stop_day
 ```
 
-```{r, eval=FALSE, echo=FALSE}
+```{r, echo=FALSE}
 stop_day_total_table <- stop_by %>%
     group_by(Day) %>%
     summarise(totaLCount = n())
@@ -170,13 +170,14 @@ Day   | Count | A    | B    | H    | O    | W
 ### Analysis of incidents of each hour in a day
 #### Picture: count of person recorded in each hour in a day
 ```{r, echo=FALSE}
-stop_time <- stop_by %>%
-  ggvis(x = ~Hour, fill := "lightpink") %>%
-  layer_histograms(width = input_slider(1, 12, value = 1, step = 2, label = "width"))
-stop_time
+stop_race <- ggplot(stop_by, aes(x = Hour, fill = CarSearch)) + 
+  geom_bar(aes(y = ..count../sum(..count..))) + 
+  scale_fill_brewer(palette = "Pastel2") +
+  labs(y = "Density")
+stop_race
 ```
 Note: you can change the value of the input slider to see the number of incidents happened in specific time span of the day.
-```{r, eval = FALSE, echo=FALSE}
+```{r, echo=FALSE}
 stop_hour <- stop_by %>%
   group_by(Hour) %>%
   summarise(count = n())
@@ -255,7 +256,7 @@ stop_time_percentage3
 
 ### Analysis of prefence of Berkeley Police Department arresting people
 #### Picture: Probability of arrested by BPD of a specific race for a specific reason
-```{r,echo=FALSE}
+```{r,echo=FALSE, fig.asp=0.5, fig.height=3, fig.width=15}
 stop_by_reason_race <- stop_by %>%
   group_by(Race, Reason) %>%
   summarise(totalCount = n())
@@ -269,7 +270,7 @@ stop_by_percentage_race <- stop_by_percentage_race %>%
 stop_arrest <- ggplot(stop_by_percentage_race, aes(x = Race, fill = Race)) + 
   geom_bar(aes(y = percentage), stat="identity") +
   labs(y = "Density") +
-  facet_wrap(~Reason)
+  facet_grid(~Reason)
 stop_arrest
 ```
 
@@ -306,7 +307,7 @@ stop_by_percentage_age <- stop_by_percentage_age %>%
 stop_arrest_age <- ggplot(stop_by_percentage_age, aes(x = AgeRange, fill = AgeRange)) + 
   geom_bar(aes(y = percentage), stat="identity") +
   labs(y = "Density") +
-  facet_wrap(~Reason)
+  facet_grid(~Reason)
 stop_arrest_age
 ```
 
@@ -340,7 +341,7 @@ stop_by_percentage_gender <- stop_by_percentage_gender %>%
 stop_arrest_gender <- ggplot(stop_by_percentage_gender, aes(x = Gender, fill = Gender)) + 
   geom_bar(aes(y = percentage), stat="identity") +
   labs(y = "Density") +
-  facet_wrap(~Reason)
+  facet_grid(~Reason)
 stop_arrest_gender
 ```
 
