@@ -1030,7 +1030,7 @@ The Berkeley census 2010 data was utilized from 3 different data sets. We first 
 
 Below is the stop data points mapped by location. We have excluded some observations on the outskirts of Berkeley in order to zoom in to the street level. Note that the `alpha` variable in `ggplot` is set to a small number in order to show the incidents that occur multiple times in the same place. In other words, the darker the point, the more police stops have occured at that location. 
 
-```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center"}
+```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center", fig.cap= "BP stop and Calls for service"}
 grid.arrange(map_stop1,map_callservice1, ncol = 2)
 ```
 
@@ -1039,7 +1039,7 @@ grid.arrange(map_stop1,map_callservice1, ncol = 2)
 
 Another visualization of the stop data mapped above is the following two-dimensional density map of the police stop data, displayed below. One of the most interesting aspects of the stop data in this image is that most police stops seem to be clustered west of UC Berkeley Campus in the Downtown area. This was contrary to what some of us might have thought before, which was that the area with the higher police stops would be the area with the higher population. As you will see, however, this is not necessarily true. 
 
-```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center"}
+```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center", fig.cap= "Berkeley Police Stop Density Map by Race"}
 grid.arrange(stopdensitymap4, popdenmap, ncol=2)
 ```
 
@@ -1048,13 +1048,13 @@ To visualize the relationship between police stops and population density, consi
 
 In order to break down the stop data further, we mapped the data by each of the disposition variables. We found race to be one of the most interesting variables. Consider the Berkeley stop data density map faceted by race:
 
-```{r, fig.height = 3, fig.width = 12, echo=FALSE, warning = FALSE, message = FALSE, fig.align="center"}
+```{r, fig.height = 3, fig.width = 12, echo=FALSE, warning = FALSE, message = FALSE, fig.align="center", fig.cap= "Police Stop density map VS. Population Density"}
 stopdensitymap3 
 ```
 
 The image above seems to imply that the group of people stopped the most are African Americans in Berkeley. For instance, in Centeral Berkeley, the stops for the races defined by the Berkeley Police Department as Asian, Hispanic, White, and Other seem comparatively lower than for Blacks in the same area. In order to consider the context of these stop incidents, we considered the population distribution for these areas, as shown below. Note that the population density visualized by the following map is conveyed by the range between white (0%) and red (100%). As you can see, White people make up a striking majority in all census 2010 tract areas, which seems to suggest the hypothesis that the population of Black people in Berkeley is being disproportionally affected by police stops.
 
-```{r, warning = FALSE, echo = FALSE,  fig.width = 15, fig.height = 3, message = FALSE, fig.align = "center"}
+```{r, warning = FALSE, echo = FALSE,  fig.width = 15, fig.height = 3, message = FALSE, fig.align = "center", fig.cap= "Berkeley Population Density Map by Race"}
 grid.arrange(a2,black2,h2,o2,w2, ncol = 5) # print population density by race.
 ```
 
@@ -1064,7 +1064,7 @@ Now, with the population percentages of each group in hand, we were able to comp
 #### LOVE JENNY 
 
 A visualization of the groups of people stopped in proportion to their population is provided by the bar chart below.
-```{r, message = F, echo = FALSE, fig.width = 10, fig.height = 3, warning = FALSE, fig.align="center"}
+```{r, message = F, echo = FALSE, fig.width = 10, fig.height = 3, warning = FALSE, fig.align="center", fig.cap= "Percent stopped and Perecent Population Stopped"}
 grid.arrange(bargraph1, bargraph2, ncol = 2)
 ```
 
@@ -1075,13 +1075,13 @@ map_arrested1
 ```
 
 
-```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.align = "center", fig.width = 8, fig.height = 3}
+```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.cap= "Police Stops Leading to Arrests", fig.align = "center", fig.width = 8, fig.height = 3}
 map_enforcement
 ```
 
 A third interesting disposition variable was the reason disposition, which indicates the reason for the police stop in each case. The reasons available for police stops are Investigation, Other, Probation/Parole, Reasonable Suspicion, Traffic, and Wanted. One way we explored the data initially was to see how these reasons affected different groups of people, and we would recommend exploring this idea in depth at a later time. Due to the length and scope of this paper however, we decided to end our discussion of the stop data by showing that most of the Berkeley police stops are traffic stops. Mapping the coordinates seems to suggest this fact, and it is confirmed when analyzing the data. 
 
-```{r, fig.height = 5, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r, fig.height = 5, fig.width = 10, fig.cap= "Police Stops by Reason", echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 map_reasons1
 ```
 
@@ -1090,14 +1090,14 @@ map_reasons1
 
 We also analyzed the preference of Berkeley PD when arresting people. We calculated the conditional probability of arrested given a specific reasion and given a specific race/ age range/ gender. That is to say, we calculated the probability of a person will be arrested by Berkeley PD if he was stopped by a specific reason and was of a specific race/ age range/ gender.
 
-```{r, fig.height = 3, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r, fig.height = 3, fig.width = 10, fig.cap= "Probability of Arrested by BDP Race VS Reason", echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_arrest
 ```
 ## PLEASE EDIT THE ANALYSIS 
 ###  LOVE JENNY 
 From the above plots, we can tell that the probability of arrested in a stop with the reason Traffic is much lower than other reasons. The average conditional probability of arrested given reason is traffic is 1.58%. Additionally, the probability of arrested in a stop with the reason Wanted is much higher than other reason. The average conditional probability of arrested given reason is wanted is 33.33%. Lastly, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole and race Asian is 75%, which is much higher than that of any other race. Asian people is much more liable to be arrested by Berkeley Police Department during Probation or Parole if stopped by the BPD.
 
-```{r, fig.height = 3, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r, fig.height = 3, fig.width = 10, fig.cap= "Probability of Arrested by BDP Age VS Reason", echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_arrest_age
 ```
 
@@ -1105,7 +1105,7 @@ stop_arrest_age
 ###  LOVE JENNY 
 Similar to the conclusions above, the probability of arrested in a stop with the reason Traffic is the lowest and wanted is the highest. Again similar to the conclusion above, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole and age range 0-18 is 67.56%, which is much higher than that of any other age range. Lastly, the conditional probability of arrested given person involved aged from 0 to 18 in a stop given any reason is more than that of given person with any other age range. Therefore, in a stop, teenagers is more liable to be arrested by Berkeley Police Department.
 
-```{r, fig.height = 3, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r, fig.height = 3, fig.width = 10, fig.cap= "Probability of Arrested by BDP Gender VS Reason", echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_arrest_gender
 ```
 
@@ -1115,14 +1115,14 @@ Similar to the conclusions above, the probability of arrested in a stop with the
 
 
 
-```{r, fig.height = 3, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r, fig.height = 3, fig.width = 10, fig.cap= "Probability of Arrested by BDP Race VS Hour", echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_percentage3
 ```
 ##  Findings 
 #### LOVE JENNY
 Black people are obviously liable to commit incidents at night. The average ratio of black people to all people stoped by the Berkeley Police Department at night is about 40%. On the other hand, white people are obviously liable to commit incidents in the daytime. The average ratio of white people to all people stoped by the Berkeley Police Deparment during the day is about 45%. While the Ratio of incidents commited by Asian people, Hispanic people and other people fluctuate during the daytime and the night, with an average ratio of 8%, 11% and 9% respectively.
 
-```{r, fig.height = 3, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+```{r, fig.height = 3, fig.width = 10, fig.cap= "Probability of Arrested by BDP Age VS Hour", echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_percentage2
 ```
 
@@ -1135,7 +1135,7 @@ People aged from 18 to 29 are obviously liable to commit incidents at night. The
 Moving on from the stop data, we considered the available jail data and arrest data for the city of Berkeley. Two of the most interesting variables to consider in these two data sets were race and age. We decided the examine the percent of people arrested and the percent of people jailed in Berkeley by both age and race. Below is a visualization. Note that the following percentages are related to the number of total people jailed or the number of people arrested, respectively, and we have not adjusted the data relative to the population of Berkeley. 
 
 
-```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.height = 3, fig.width = 10, fig.align="center"}
+```{r, echo=FALSE, fig.cap= "Percentage of being arrested and being jailed", warning = FALSE, message=FALSE, fig.height = 3, fig.width = 10, fig.align="center"}
 grid.arrange(bararrest, barjail, ncol = 2)
 ```
 
