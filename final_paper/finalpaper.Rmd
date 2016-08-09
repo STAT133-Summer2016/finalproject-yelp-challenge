@@ -38,6 +38,7 @@ library(pander)
 library(formattable)
 library(pander)
 library(extrafont)
+setwd("~/Desktop/Stats R/PROJECT/FINALPAPER/finalproject_angry_ladies/final_paper")
 ```
 
 
@@ -642,14 +643,14 @@ stop_arrest <- ggplot(stop_by_percentage_race, aes(x = Race,
                                                    fill = Race)) + 
   geom_bar(aes(y = percentage), stat="identity") +
   scale_fill_manual(values=c("#FFCC00","#E1B378","#5F9EA0","#66FFCC","#40B8D0"))+
-  facet_wrap(~Reason)+
+  facet_wrap(~Reason, nrow = 1)+
   geom_text(aes(x=Race,
                y=percentage,
                label = paste0(percentage*100, "%")), 
             size=4,
             colour= "#000000") +
   scale_y_continuous(labels=percent, limits = c(0,1)) +
-  labs(title = "The percentage of population \nbeing stopped (%)",
+  labs(title = "Probability of arrested by BPD of \na specific race for a specific reason (%)",
        x = "Race",
        y = "Density")+
   theme(axis.line = element_line(size=1, colour = "black"), 
@@ -775,6 +776,9 @@ histogram_arrest1 <- ggplot(na.omit(arrest))+
         axis.text.x=element_text(colour="black", size = 10), 
         axis.text.y=element_text(colour="black", size = 10))
 
+
+
+
 # jail data histogram by race
 histogram_jail1 <- ggplot(na.omit(jail))+
   geom_bar(aes(x=Age,
@@ -844,16 +848,17 @@ map_enforcement <- ggplot(table3)+
 ```
 
 
-```{r, echo=FALSE, include = FALSE, message=FALSE, warning = FALSE, eval = F}
+```{r, echo=FALSE, include = FALSE, message=FALSE, warning = FALSE}
 
 
 race_hour <- read.csv("../clean_data/race_hour.csv")
+
 stop_percentage3 <- ggplot(race_hour, aes(x = Hour, fill = Race)) + 
   geom_bar(aes(y = percentage), stat="identity") +
   labs(title = "Probability of BPD stop for \na specific race in a specific hour",
        x= "Hour",
        y = "Density") +
-  facet_wrap(~Race) +
+  facet_wrap(~Race, nrow = 1) +
   scale_fill_manual(values=c("#FFCC00","#E1B378","#5F9EA0","#66FFCC","#40B8D0")) +
   scale_y_continuous(labels=percent, limits = c(0,1)) +
   theme(axis.line = element_line(size=1, colour = "black"), 
@@ -871,7 +876,7 @@ stop_percentage3 <- ggplot(race_hour, aes(x = Hour, fill = Race)) +
 ```
 
 
-```{r, echo=FALSE, include = FALSE, message=FALSE, warning = FALSE, eval = F}
+```{r, echo=FALSE, include = FALSE, message=FALSE, warning = FALSE}
 
 age_hour <- read.csv("../clean_data/age_hour.csv")
 
@@ -895,6 +900,89 @@ labs(title = "Probability of BPD stop for a \nspecific age range in a specific h
 
 
 ```
+
+
+
+```{r, echo=FALSE, include = FALSE, message=FALSE, warning = FALSE}
+# Probability of arrested by BPD of a specific gender for a specific reason
+stop_by_reason_gender <-stops %>% 
+  group_by(Gender, Reason) %>% 
+  summarise(totalCount=n())
+stop_by_arrest_gender <- stops[stops$Enforcement == "Arrest",] %>%
+  group_by(Gender, Reason) %>%
+  summarise(arrestCount = n())
+stop_by_percentage_gender <- left_join(stop_by_reason_gender, stop_by_arrest_gender, by = c("Gender", "Reason"))
+stop_by_percentage_gender <- stop_by_percentage_gender %>%
+  mutate(percentage = arrestCount / totalCount)
+stop_by_percentage_gender$percentage <- round(stop_by_percentage_gender$percentage , digits=2)
+stop_by_percentage_gender<- stop_by_percentage_gender[stop_by_percentage_gender$Reason != "Other",]
+
+stop_arrest_gender <- ggplot(stop_by_percentage_gender , aes(x = Gender, fill = Gender)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  facet_wrap(~Reason, nrow=1)+
+labs(title = "Probability of BPD stop for a \nspecific gender range in a specific reason",
+       x= "Hour",
+       y = "Density") +
+  scale_fill_manual(values=c("#FFCC00","#E1B378","#5F9EA0","#66FFCC","#40B8D0")) +
+  scale_y_continuous(labels=percent, limits = c(0,1)) +
+  geom_text(aes(x=Gender,
+               y=percentage,
+               label = paste0(percentage*100, "%")), 
+            size=3,
+            colour= "#000000")+
+  theme(axis.line = element_line(size=1, colour = "black"), 
+        panel.grid.major = element_line(colour = "#d3d3d3"), panel.grid.minor = element_blank(), 
+        panel.border = element_blank(), panel.background = element_blank()) +
+  theme(plot.title = element_text(size = 12, family = "Georgia", face = "bold"), 
+        text=element_text(family="Times New Roman", size = 10),
+        axis.text.x=element_text(colour="black", size = 7), 
+        axis.text.y=element_text(colour="black", size = 7)) +
+  guides(fill = FALSE) 
+
+```
+
+
+
+```{r, echo=FALSE, include = FALSE, message=FALSE, warning = FALSE}
+stop_by_reason_age <- stops %>%
+  group_by(AgeRange, Reason) %>%
+  summarise(totalCount = n())
+stop_by_arrest_age <- stops[stops$Enforcement == "Arrest",] %>%
+  group_by(AgeRange, Reason) %>%
+  summarise(arrestCount = n())
+stop_by_percentage_age <- left_join(stop_by_reason_age, stop_by_arrest_age, by = c("AgeRange", "Reason"))
+stop_by_percentage_age <- stop_by_percentage_age %>%
+  mutate(percentage = arrestCount / totalCount)
+stop_by_percentage_age$percentage<-round(stop_by_percentage_age$percentage,digits = 2)
+stop_by_percentage_age <- stop_by_percentage_age[stop_by_percentage_age$Reason != "Other",]
+
+
+
+stop_arrest_age <- ggplot(stop_by_percentage_age, aes(x = AgeRange, fill = AgeRange)) + 
+  geom_bar(aes(y = percentage), stat="identity") +
+  facet_wrap(~Reason)+
+  labs(title = "Probability of BPD stop for a \nspecific age range in a specific reason",
+       x= "Hour",
+       y = "Density") +
+  scale_fill_manual(values=c("#FFCC00","#E1B378","#5F9EA0","#66FFCC","#40B8D0")) +
+  scale_y_continuous(labels=percent, limits = c(0,1)) +
+  geom_text(aes(x=AgeRange,
+               y=percentage,
+               label = paste0(percentage*100, "%")), 
+            size=3,
+            colour= "#000000")+
+  theme(axis.line = element_line(size=1, colour = "black"), 
+        panel.grid.major = element_line(colour = "#d3d3d3"), panel.grid.minor = element_blank(), 
+        panel.border = element_blank(), panel.background = element_blank()) +
+  theme(plot.title = element_text(size = 12, family = "Georgia", face = "bold"), 
+        text=element_text(family="Times New Roman", size = 10),
+        axis.text.x=element_text(colour="black", size = 7), 
+        axis.text.y=element_text(colour="black", size = 7)) +
+  guides(fill = FALSE) 
+
+
+```
+
 
 
 ## Abstract  
@@ -941,7 +1029,7 @@ The Berkeley census 2010 data was utilized from 3 different data sets. We first 
 
 Below is the stop data points mapped by location. We have excluded some observations on the outskirts of Berkeley in order to zoom in to the street level. Note that the `alpha` variable in `ggplot` is set to a small number in order to show the incidents that occur multiple times in the same place. In other words, the darker the point, the more police stops have occured at that location. 
 
-```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center", eval = F}
+```{r, warning = FALSE, echo = F, fig.width = 10, fig.height = 5, message = FALSE, fig.align="center"}
 grid.arrange(map_stop1,map_callservice1, ncol = 2)
 ```
 
@@ -1018,7 +1106,7 @@ stop_percentage3
 
 3. Ratio of incidents commited by Asian people, Hispanic people and other people fluctuate during the daytime and the night, with an average ratio of 8%, 11% and 9% respectively.
 
-```{r}
+```{r, fig.height = 10, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
 stop_percentage2 
 ```
 ### Jenny Findings 
@@ -1029,11 +1117,32 @@ stop_percentage2
 3. Ratio of incidents commited by people aged between 0 and 18 and people aged from 30 to 39 fluctuates during the daytime and the night, with an average ratio of 2.5% and 25% respectively.
 
 
-```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.height = 5, fig.width = 5, fig.align="center"}
+
+```{r, fig.height = 10, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+stop_arrest_age
+```
+### Jenny Findings 
+1. Similar to the conclusions above, the probability of arrested in a stop with the reason Traffic is the lowest and wanted is the highest.
+
+2. Again similar to the conclusion above, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole and age range 0-18 is 67.56%, which is much higher than that of any other age range.
+
+3. The conditional probability of arrested given person involved aged from 0 to 18 in a stop given any reason is more than that of given person with any other age range. Therefore, in a stop, teenagers is more liable to be arrested by Berkeley Police Department.
+
+
+```{r, fig.height = 10, fig.width = 10, echo=FALSE, warning = FALSE, message = FALSE, fig.align = "center"}
+stop_arrest_gender 
+```
+### Jenny Findings 
+1. Similar to the conclusions above, the probability of arrested in a stop with the reason Traffic is the lowest and wanted is the highest.
+
+2. Again similar to the conclusion above, an interesting fact is that the conditional probability of arrested in a stop with the reason Probation or Parole of female is 50.00%, which is much higher than that of male, which is 20.11%.
+
+
+
+```{r, echo=FALSE, warning = FALSE, message=FALSE, fig.height = 5, fig.width = 10, fig.align="center"}
 #### INCLUDE BAR GRAPH & TABLE OF POLICE STOPS BY REASON HERE(Use percentage, not count)!!!!!!!!!!!!!!!!!!!!!!!!
 grid.arrange(bararrest, barjail, ncol = 2)
 ```
-
 
 ## Berkeley Police Jail and Arrest Data Set Analysis
 
