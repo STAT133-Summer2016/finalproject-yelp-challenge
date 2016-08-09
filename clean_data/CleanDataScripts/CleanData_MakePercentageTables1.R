@@ -1,5 +1,7 @@
 # CleanData_MakePercentageTables1.R
+
 # Author: Rebecca Reus
+
 # Purpose: 
 # 1. Clean the merged location stop data and create and save summary tables to display in paper.
 # 2. Clean the jail and arrest data and create and save tables to display in paper.
@@ -31,7 +33,7 @@ library(XLConnect)
 library(RColorBrewer)
 
 # data file names:
-file_stops <- "../../clean_data/StopData_clean.csv" 
+file_stops <- "../StopData_clean.csv" 
 file_stopsummary <- "../../clean_data/StopData_summary.csv" 
 mergedf <- read_csv(file = file_stops)
 census <- read.csv("../../raw_data/Census_Data_2000_And_2010.csv")
@@ -122,6 +124,7 @@ pop1$totalp <- round(pop1$totalp, digits =2)
 
 
 # stop summary table:
+
 ss <- stopsummary %>%
   select(Race, Percent.Stopped, Percent.Race.Stopped)
 ss$Percent.Stopped <- percent(ss$Percent.Stopped)
@@ -141,10 +144,10 @@ mergedf <- mergedf %>%
 
 # save the clean data:
 
-#saveRDS(callservice, "../../clean_data/CallsForService.rds")
+# saveRDS(callservice, "../CallsForService.rds")
 # listOfTables <- list(age, sex, race, pop1, ss)
-# saveRDS(listOfTables, "../../clean_data/Tables_AgeSexRacePopStop.rds")
-# saveRDS(mergedf, "../../clean_data/StopData_clean.rds")
-# write.csv(mergedf, "../../clean_data/StopData_clean.csv" )
+# saveRDS(listOfTables, "../Tables_AgeSexRacePopStop.rds")
+# saveRDS(mergedf, "../StopData_clean.rds")
+# write.csv(mergedf, "../clean_data/StopData_clean.csv" )
 
 
