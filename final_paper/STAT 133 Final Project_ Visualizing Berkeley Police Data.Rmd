@@ -1,15 +1,15 @@
 ---
-title: "STAT 133 Final Project: Visualizing Berkeley Police Data"
+title: 'STAT 133 Final Project: Visualizing Berkeley Police Data'
 author: "Amy Zhu, Mengyu Li, Rebecca Reus, and Shangjun Jiang"
 date: "9 August 2016"
-output: 
-    pdf_document:
-    latex_engine: xelatex
-    fig_caption: yes
-    keep_tex: yes
-header-includes: \usepackage{float}
+output:
+  html_document: default
+  fig_caption: yes
+  keep_tex: yes
+  latex_engine: xelatex
+  pdf_document: null
 sansfont: Times New Roman
-
+header-includes: \usepackage{float}
 ---
 
 ```{r setup, include=FALSE, warning = FALSE, message = FALSE}
